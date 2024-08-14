@@ -8,5 +8,6 @@ export default defineNuxtConfig({
       googleClientId: process.env.GOOGLE_CLIENT_ID
     },
     googleClientSecret: process.env.GOOGLE_SECRET_KEY
-  }
+  },
+  compatibilityDate:'2024-08-14'
 })

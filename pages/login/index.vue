@@ -5,12 +5,17 @@
     <button @click="handleGoogleLogin">
         <span>使用 Google 進行登入</span>
     </button>
-    {{ userInfo }}
 </template>
 
 <script setup>
-  import { ref } from 'vue'
+  import { useRouter } from 'vue-router'
   import { googleTokenLogin } from 'vue3-google-login'
+  import { useState } from '#app'
+
+  const router = useRouter()
+  const userInfo = useState('userInfo', () => ({ name: '', email: '' }))
+  const isAuthenticated = useState('isAuthenticated', () => false)
+
   function login() {
       pass
   }
@@ -18,7 +23,6 @@
   const runtimeConfig = useRuntimeConfig()
   const { googleClientId: GOOGLE_CLIENT_ID } = runtimeConfig.public
   
-  const userInfo = ref(null)
   
   const handleGoogleLogin = async () => {
     const accessToken = await googleTokenLogin({
@@ -37,7 +41,12 @@
       }
     })
   
-    userInfo.value = data.value
+    if (data.value) {
+      userInfo.value.name = data.value.name
+      userInfo.value.email = data.value.email
+      isAuthenticated.value = true
+      router.push('/')
+    }
   }
 
 </script>
