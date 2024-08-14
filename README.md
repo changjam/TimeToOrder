@@ -1,18 +1,10 @@
-# TimeToOrder
+# Setup
 
-## Build Setup
+## 建立Google OAuth 用戶 ID
 
-```bash
-# install dependencies
-$ npm install
+https://console.cloud.google.com/welcome
+請先到Google Cloud Console 建立OAuth 用戶ID，並取得Client ID 和 Client Secret。
 
-# serve with hot reload at localhost:3000
-$ npm run dev
-
-# build for production and launch server
-$ npm run build
-$ npm run start
-
-# generate static project
-$ npm run generate
-```
+## 建立.env檔
+GOOGLE_CLIENT_ID=Your Client ID here
+GOOGLE_SECRET_KEY=Your Client Secret here

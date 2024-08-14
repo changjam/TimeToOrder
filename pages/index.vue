@@ -1,11 +1,12 @@
 <template>
-  <Home/>
+  <h1>TimeToOrder</h1>
+  <button @click="login">登入</button>
 </template>
-
-<script>
-import Home from '../components/Home.vue';
-
-export default {
-  name: 'IndexPage'
-}
+  
+<script setup>
+  import { useRouter } from 'vue-router'
+  const router = useRouter()
+  function login() {
+    router.push('/login')
+  }
 </script>

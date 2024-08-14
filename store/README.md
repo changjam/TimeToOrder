@@ -1,3 +1,0 @@
-# STORE
-
-Comunicates within components .
