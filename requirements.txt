@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+numpy
+Pillow
+Requests
+accelerate
+elasticsearch
+python-dotenv
+print_color
+json-repair
+aiohttp
+pandas
