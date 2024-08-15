@@ -10,8 +10,6 @@ from .LLM import LLM
 
 
 load_dotenv()
-
-
 class ollama_LLM(LLM):
     
     def __init__(self, model_name: str = 'llama3:8b-instruct-fp16', api_url: str = os.environ['OLLAMA_HOST']):

@@ -1,5 +1,3 @@
-
-
 from PIL import Image as Img
 from io import BytesIO
 import base64
