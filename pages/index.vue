@@ -33,6 +33,7 @@
       const data = JSON.parse(atob(credential.split('.')[1])); // atob => decode credential
       sessionStorage.setItem('user-name', data.name)
       sessionStorage.setItem('user-email', data.email)
+      sessionStorage.setItem('user-id', data.sub)
       sessionStorage.setItem('isAuthenticated', 'true')
 
       userInfo.value.name = data.name
@@ -48,6 +49,7 @@
   const logout = () => {
     sessionStorage.setItem('user-name', '')
     sessionStorage.setItem('user-email', '')
+    sessionStorage.setItem('user-id', '')
     sessionStorage.setItem('isAuthenticated', 'false')
     isAuthenticated.value = false
   }
