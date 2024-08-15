@@ -1,11 +1,19 @@
 <template>
-  <Home/>
+  <h1>TimeToOrder</h1>
+  <p v-if="isAuthenticated">Hello, {{ userInfo.name }}!</p>
+  <button v-else="isAuthenticated" @click="login">登入</button>
 </template>
+  
+<script setup>
+  import { useRouter } from 'vue-router'
+  import { useState } from '#app'
 
-<script>
-import Home from '../components/Home.vue';
+  const router = useRouter()
+  function login() {
+    router.push('/login')
+  }
 
-export default {
-  name: 'IndexPage'
-}
+  const userInfo = useState('userInfo')
+  const isAuthenticated = useState('isAuthenticated')
+  
 </script>

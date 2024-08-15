@@ -1,19 +1,21 @@
 {
-  "name": "TimeToOrder",
-  "version": "1.0.0",
+  "name": "nuxt-app",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "nuxt",
     "build": "nuxt build",
-    "start": "nuxt start",
-    "generate": "nuxt generate"
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
   },
   "dependencies": {
-    "core-js": "^3.25.3",
-    "nuxt": "^2.15.8",
-    "vue": "^2.7.10",
-    "vue-server-renderer": "^2.7.10",
-    "vue-template-compiler": "^2.7.10"
+    "dotenv": "^16.4.5",
+    "nuxt": "^3.12.4",
+    "vue": "latest"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "google-auth-library": "^9.13.0",
+    "vue3-google-login": "^2.0.31"
+  }
 }
