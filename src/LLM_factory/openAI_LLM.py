@@ -10,7 +10,7 @@ from .LLM import LLM
 
 load_dotenv()
 class openAI_LLM(LLM):
-    def __init__(self, model_name: str = 'gpt-4o-mini', api_key: str = os.environ['OPENAI_API_KEY']):
+    def __init__(self, model_name: str = 'gpt-4o-mini', api_key: str = os.environ['API_KEY']):
         self.model_name = model_name
         self.client = OpenAI(api_key=api_key)
 
@@ -32,7 +32,7 @@ class openAI_LLM(LLM):
                 ]
             }
         ]
-        message[0]['content'].append({"type": "image_url", "image_url": { "url": f"data:image/png;base64,{b64_image}"}})
+        message[0]['content'].append({"type": "image_url", "image_url": { "url": b64_image}})
 
 
         # 2. Generate model
