@@ -1,6 +1,7 @@
 import { config } from 'dotenv'
 
 export default defineNuxtConfig({
+  ssr: false,
   modules: [],
   devtools:{ enabled: false },
   runtimeConfig: {
