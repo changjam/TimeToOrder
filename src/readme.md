@@ -1,4 +1,19 @@
-### Input
+## Start
+#### 1. Setup .env
+```
+# .env
+USE_MODEL=openAI_LLM
+MODEL_NAME=gpt-4o-mini
+API_KEY=abc
+```
+#### 2. Launch api
+```bash
+pip install -r requirements.txt
+cd src/
+uvicorn main:app --host 0.0.0.0 --port 8000
+```
+
+## Input
 ```bash
 curl -X 'POST' \
   'http://127.0.0.1:8000/ocr_detect' \
@@ -10,7 +25,7 @@ curl -X 'POST' \
 }'
 ```
 
-### Output
+## Output
 ```json
 # image_size: 1670*2355
 {
