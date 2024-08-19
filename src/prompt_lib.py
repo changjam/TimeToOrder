@@ -9,7 +9,7 @@ To complete this task, follow these steps:
     a. Note the full name of the meal as it appears on the menu.
     b. Find the price associated with that meal.
 
-3. As you collect this information, organize it mentally in a structure where each meal is an object with two properties: "name" and "price".
+3. As you collect this information, organize it mentally in a structure where each meal is an object with two properties: "name" and "price", if the dish has two prices, find the reason, and change the "name" to make it unique. For Example, if one dish has two prices because of size, you can set the name: "Cheeseburger (S)"  and "Cheeseburger (L)".
 
 4. Once you have gathered all the meal names and prices, prepare to output this information in JSON format. The JSON structure should be an array of objects, where each object represents a meal with "name" and "price" properties.
 

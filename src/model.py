@@ -1,5 +1,6 @@
 from pydantic import BaseModel
-from pydantic.main import TupleGenerator
+
+
 
 
 class Input_Image_Obj(BaseModel):
@@ -9,5 +10,3 @@ class Input_Image_Obj(BaseModel):
     def __iter__(self):
         yield self.image_name
         yield self.image_base64_encode
-
-    

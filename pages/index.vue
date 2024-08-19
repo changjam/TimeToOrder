@@ -1,56 +1,39 @@
 <template>
   <h1>TimeToOrder</h1>
-  <div v-if="isAuthenticated">
+  <div v-if="userInfo.sub">
     <p>Hello, {{ userInfo.name }}!</p><br>
     <button @click="logout">登出</button>
   </div>
-  <ClientOnly v-else>
-    <GoogleLogin :callback="callback" />
-  </ClientOnly>
 </template>
 
 <script setup>
-  import { ref, onMounted } from 'vue'
+  import { onMounted } from 'vue'
+  
+  const router = useRouter();
 
-  const isAuthenticated = ref(false)
-  const userInfo = ref({ name: '', email: '' })
+  const userInfo = reactive({sub: ''})
 
-  onMounted(() => {
-    const storedIsAuthenticated = sessionStorage.getItem('isAuthenticated') === 'true'
-
-    if (storedIsAuthenticated) {
-      isAuthenticated.value = true
-      userInfo.value.name = sessionStorage.getItem('user-name')
-      userInfo.value.email = sessionStorage.getItem('user-email')
-    }
+  onMounted(async () => {
+    const login_credential = localStorage.getItem('login_credential')
+    const response = await verify_credential(login_credential)
+    if (!response)
+      router.push('/login')
+    Object.assign(userInfo, response.payload)
   })
 
-  const callback = (response) => {
-    // credential => JWT(JSON Web Token)
-    const { credential } = response;
-
-    if (credential) {
-      const data = JSON.parse(atob(credential.split('.')[1])); // atob => decode credential
-      sessionStorage.setItem('user-name', data.name)
-      sessionStorage.setItem('user-email', data.email)
-      sessionStorage.setItem('user-id', data.sub)
-      sessionStorage.setItem('isAuthenticated', 'true')
-
-      userInfo.value.name = data.name
-      userInfo.value.email = data.email
-      isAuthenticated.value = true
-    } else {
-      alert('登入失敗')
-      sessionStorage.setItem('isAuthenticated', 'false')
-      isAuthenticated.value = false
-    }
-  }
-
   const logout = () => {
-    sessionStorage.setItem('user-name', '')
-    sessionStorage.setItem('user-email', '')
-    sessionStorage.setItem('user-id', '')
-    sessionStorage.setItem('isAuthenticated', 'false')
-    isAuthenticated.value = false
+    localStorage.setItem('login_credential', '')
+    Object.assign(userInfo, {})
+    router.push('/login')
+  }
+  
+  const verify_credential = async (credential) => {
+    const response = await useFetch('/api/auth/auth-verify', {
+      method: 'POST',
+      body: {credential}
+    })
+    if (response.status.value != 'success')
+      return;
+    return response.data.value
   }
 </script>
