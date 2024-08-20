@@ -5,7 +5,7 @@ const [minPrice, maxPrice] = getPriceRange(props.restaurant.dishes)
 
 const router = useRouter();
 const openUrl = (link) => {
-    router.push({ path: `/restaurants/${link}` })
+    router.push({ path: `/menus/${link}` })
 }
 
 </script>

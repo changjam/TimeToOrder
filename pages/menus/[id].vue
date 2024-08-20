@@ -93,7 +93,7 @@ const test = (dish) => {
 .restaurant-wrapper {
     display: grid;
     grid-template-columns: 2fr 1fr;
-    width: 90%;
+    width: 80%;
     margin-inline: auto;
     padding-top: 1rem;
     gap: 1rem;
