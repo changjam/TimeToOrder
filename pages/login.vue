@@ -14,7 +14,6 @@
   import { useState } from '#app';
 
   const router = useRouter();
-  const credential_test = ref('')
 
   onMounted(async () => {
     const login_credential = localStorage.getItem('login_credential')
