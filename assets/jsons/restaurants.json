@@ -1,0 +1,175 @@
+{
+    "data": [
+        {
+            "id": 1,
+            "name": "福地餐盒",
+            "tel": "07-550-9953",
+            "links": {
+                "facebook": "https://www.facebook.com/profile.php?id=100094195088541&mibextid=LQQJ4d",
+                "uberEat": "https://www.ubereats.com/tw/store/%E7%A6%8F%E5%BC%9F%E5%81%A5%E5%BA%B7%E9%A4%90%E7%9B%92-foodie-bento/LEuai2-wUhiElBW6pWNJpQ?utm_campaign=place-action-link&utm_medium=organic&utm_source=google",
+                "foodPanda": "https://www.foodpanda.com.tw/restaurant/udcs/fu-di-bian-dang-foodie-bento?utm_source=google&utm_medium=organic&utm_campaign=google_reserve_place_order_action"
+            },
+            "types": [
+                "健康餐盒",
+                "葷食"
+            ],
+            "dishes": [
+                {
+                    "name": "火烤鯖魚餐盒",
+                    "price": 95
+                },
+                {
+                    "name": "塔香打拋豬餐盒",
+                    "price": 105
+                },
+                {
+                    "name": "蔥鹽梅花豬餐盒",
+                    "price": 105
+                },
+                {
+                    "name": "薑汁燒肉豬餐盒",
+                    "price": 105
+                },
+                {
+                    "name": "青花椒香酥雞餐盒",
+                    "price": 105
+                },
+                {
+                    "name": "蔥鹽嫩雞胸餐盒",
+                    "price": 125
+                },
+                {
+                    "name": "去骨檸檬雞腿餐盒",
+                    "price": 125
+                },
+                {
+                    "name": "客庄鹹豬肉餐盒",
+                    "price": 125
+                },
+                {
+                    "name": "醬燒雞腿排餐盒",
+                    "price": 135
+                },
+                {
+                    "name": "午仔魚一夜干餐盒",
+                    "price": 165
+                },
+                {
+                    "name": "季節時蔬餐盒",
+                    "price": 70
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "name": "八方雲集和順店",
+            "tel": "06-357-1735",
+            "links": {
+                "facebook": "https://www.facebook.com/profile.php?id=100094195088541&mibextid=LQQJ4d",
+                "uberEat": "https://www.ubereats.com/tw/store/%E7%A6%8F%E5%BC%9F%E5%81%A5%E5%BA%B7%E9%A4%90%E7%9B%92-foodie-bento/LEuai2-wUhiElBW6pWNJpQ?utm_campaign=place-action-link&utm_medium=organic&utm_source=google",
+                "foodPanda": "https://www.foodpanda.com.tw/restaurant/udcs/fu-di-bian-dang-foodie-bento?utm_source=google&utm_medium=organic&utm_campaign=google_reserve_place_order_action"
+            },
+            "types": [
+                "水餃",
+                "麵食"
+            ],
+            "categories": [
+                {
+                    "name": "牛肉麵",
+                    "description": "備註想要的配料:加蔥,加酸菜,都不加",
+                    "dishes": [
+                        {
+                            "name": "紅燒牛肉麵",
+                            "price": 168
+                        },
+                        {
+                            "name": "清燉牛肉麵",
+                            "price": 168
+                        },
+                        {
+                            "name": "麻辣牛肉麵",
+                            "price": 178
+                        }
+                    ]
+                },
+                {
+                    "name": "鍋貼",
+                    "description": "",
+                    "dishes": [
+                        {
+                            "name": "招牌鍋貼",
+                            "price": 6.3
+                        },
+                        {
+                            "name": "斐菜鍋貼",
+                            "price": 6.3
+                        },
+                        {
+                            "name": "韓式辣味鍋貼",
+                            "price": 6.3
+                        },
+                        {
+                            "name": "咖哩雞肉鍋貼",
+                            "price": 6.3
+                        },
+                        {
+                            "name": "玉米鍋貼",
+                            "price": 6.3
+                        },
+                        {
+                            "name": "新蔬食鍋貼",
+                            "price": 7
+                        }
+                    ]
+                }
+            ],
+            "dishes": [
+                {
+                    "name": "紅燒牛肉麵",
+                    "price": 168,
+                    "category": "牛肉麵"
+                },
+                {
+                    "name": "清燉牛肉麵",
+                    "price": 168,
+                    "category": "牛肉麵"
+                },
+                {
+                    "name": "麻辣牛肉麵",
+                    "price": 178,
+                    "category": "牛肉麵"
+                },
+                {
+                    "name": "招牌鍋貼",
+                    "price": 6.3,
+                    "category": "鍋貼"
+                },
+                {
+                    "name": "斐菜鍋貼",
+                    "price": 6.3,
+                    "category": "鍋貼"
+                },
+                {
+                    "name": "韓式辣味鍋貼",
+                    "price": 6.3,
+                    "category": "鍋貼"
+                },
+                {
+                    "name": "咖哩雞肉鍋貼",
+                    "price": 6.3,
+                    "category": "鍋貼"
+                },
+                {
+                    "name": "玉米鍋貼",
+                    "price": 6.3,
+                    "category": "鍋貼"
+                },
+                {
+                    "name": "新蔬食鍋貼",
+                    "price": 7,
+                    "category": "鍋貼"
+                }
+            ]
+        }
+    ]
+}

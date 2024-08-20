@@ -2,12 +2,12 @@ import { config } from 'dotenv'
 
 export default defineNuxtConfig({
   modules: [],
-  devtools:{ enabled: false },
+  devtools: { enabled: false },
   runtimeConfig: {
     public: {
       googleClientId: process.env.GOOGLE_CLIENT_ID
     },
     googleClientSecret: process.env.GOOGLE_SECRET_KEY
   },
-  compatibilityDate:'2024-08-14'
+  compatibilityDate: '2024-08-14'
 })
