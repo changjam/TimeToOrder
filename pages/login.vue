@@ -7,6 +7,7 @@
 
 <script setup>
   import { ref, onMounted } from 'vue'
+  import { useFetch } from '#app';
 
   const router = useRouter();
   const credential_test = ref('')
@@ -36,6 +37,22 @@
       method: 'POST',
       body: {credential}
     })
+    
+    // 註冊
+    const user_info = response.data.value
+    try {
+      await useFetch('/api/users/post', {
+      method: 'POST',
+      body: {
+        user_id:user_info.payload.sub, 
+        name:user_info.payload.name, 
+        email:user_info.payload.email
+      },
+    });
+    }catch(error){
+      console.log("Already registered or Other Error")
+    }
+    
     if (response.status.value !== 'success')
       return;
     return response.data.value
