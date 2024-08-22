@@ -46,7 +46,8 @@
       body: {
         user_id:user_info.payload.sub, 
         name:user_info.payload.name, 
-        email:user_info.payload.email
+        email:user_info.payload.email,
+        image:user_info.payload.picture
       },
     });
     }catch(error){

@@ -1,25 +1,26 @@
 <script setup>
 import { getPriceRange } from '@/utils/dishesHandler'
-const props = defineProps(['restaurant'])
-const [minPrice, maxPrice] = getPriceRange(props.restaurant.dishes)
+const props = defineProps(['items'])
+const restaurant = props.items
 
 const router = useRouter();
 const openUrl = (link) => {
-    router.push({ path: `/menus/${link}` })
+    router.push({ path: `/menus2/${link}` })
 }
+
 </script>
 
 <template>
-    <!-- <div class="menu-card" > -->
-    <div class="menu-card" :title="restaurant.link" @click="openUrl(restaurant.id)">
-        <div class="image-container">
-            <img :src="`/_nuxt/assets/images/${restaurant.id}.jpg`" alt="餐廳圖片" class="restaurant-picture">
+    <!-- :title="restaurant.link" @click="openUrl(restaurant.id)" -->
+    <div class="menu-card">
+        <div class="image-container" @click="openUrl(restaurant._id)">
+            <img :src="`${restaurant.image}`" alt="餐廳圖片" class="restaurant-picture">
             <!-- <img src="~assets/images/1.jpg" alt="餐廳圖片" class="restaurant-picture"> -->
         </div>
         <div class="restaurant-info">
             <h2>{{ restaurant.name }}</h2>
-            <p>電話:{{ restaurant.tel }}</p>
-            <p>價格:{{ `$${minPrice}~$${maxPrice}` }}</p>
+            <p>電話:{{ restaurant.phone }}</p>
+            <!-- <p>價格:{{ `$${minPrice}~$${maxPrice}` }}</p> -->
         </div>
         <div class="tag-container">
             <div v-for="type in restaurant.types">{{ type }}</div>
