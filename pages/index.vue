@@ -8,6 +8,9 @@
 
 <script setup>
   import { onMounted } from 'vue'
+  import { addUserSession } from '@/utils/userSessionHandler'
+  import { useState } from '#app';
+  import mongoose from 'mongoose';
   
   const router = useRouter();
 
@@ -22,6 +25,14 @@
   })
 
   const logout = () => {
+    const userId = new mongoose.Types.ObjectId(useState('user_id').value);
+    const userName = useState('name').value;
+    addUserSession({'user_id':userId,'name': userName,'actions': "Logout"})
+
+    useState('user_id').value = null;
+    useState('name').value;
+
+
     localStorage.setItem('login_credential', '')
     Object.assign(userInfo, {})
     router.push('/login')

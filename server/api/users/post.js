@@ -6,8 +6,8 @@ export default defineEventHandler(async (event) => {
 
   try {
     await user.save();
-    return { success: true, message: 'Product added successfully' };
+    return { success: true, message: 'User added successfully' };
   } catch (error) {
-    return { success: false, message: 'Failed to add product', error };
+    return { success: false, message: 'Failed to add User', error };
   }
 });

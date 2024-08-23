@@ -8,6 +8,10 @@
 <script setup>
   import { ref, onMounted } from 'vue'
   import { useFetch } from '#app';
+  import { addUserSession } from '@/utils/userSessionHandler'
+  import { getUserData } from '~/utils/userHandler';
+  import mongoose from 'mongoose';
+  import { useState } from '#app';
 
   const router = useRouter();
   const credential_test = ref('')
@@ -23,11 +27,23 @@
   const login = async (response) => {
     // credential => JWT(JSON Web Token)
     const { credential } = response
+    
 
     const data = await verify_credential(credential)
     if (!data)
       return;
     localStorage.setItem('login_credential', credential)
+
+    // get user data
+    const UserData = await getUserData({"user_id": data.payload.sub})
+    var user_id = new mongoose.Types.ObjectId(UserData.data._id)
+    var name = UserData.data.name
+
+    const userIdState = useState('user_id', () => UserData.data._id);
+    const userNameState = useState('name', () => name);
+
+    // add user login session
+    addUserSession({'user_id': user_id,'name': name,'actions': "Login"})
 
     router.push('/');
   }
@@ -53,7 +69,7 @@
     }catch(error){
       console.log("Already registered or Other Error")
     }
-    
+
     if (response.status.value !== 'success')
       return;
     return response.data.value
