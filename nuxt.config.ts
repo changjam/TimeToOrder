@@ -1,7 +1,7 @@
 import { config } from 'dotenv'
 
 export default defineNuxtConfig({
-  ssr: true,
+  ssr: false,
   modules: [],
   devtools:{ enabled: false },
   nitro: {
