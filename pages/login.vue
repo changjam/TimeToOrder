@@ -1,10 +1,3 @@
-<template>
-  <h1>TimeToOrder Login</h1>
-  <ClientOnly>
-    <GoogleLogin :callback="login" />
-  </ClientOnly>
-</template>
-
 <script setup>
   import { onMounted } from 'vue'
   import { useFetch } from '#app';
@@ -50,3 +43,24 @@
     router.push('/');
   }
 </script>
+
+<template>
+  <div class="container">
+    <h1 >快登入，別餓著自己！</h1>
+    <ClientOnly>
+      <GoogleLogin class="sign_in_btn_wrapper" :callback="login"/>
+    </ClientOnly>
+  </div>
+</template>
+
+<style scoped>
+  .container{
+    width: 100%;
+    height: 60%;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    justify-content: center;
+    align-items: center;
+  }
+</style>
