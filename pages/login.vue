@@ -31,7 +31,12 @@
     if (!user_info) return;
 
     // add user login session
-    addUserSession({'user_id': user_info.user_id, 'name': user_info.name, 'actions': "Login"})
+    addUserSession({
+      'user_id': user_info.user_id, 
+      'name': user_info.name, 
+      'email': user_info.email,
+      'actions': "Login"
+    })
 
     // register
     try {
