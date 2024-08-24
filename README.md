@@ -8,6 +8,9 @@ https://console.cloud.google.com/welcome
 ```
 GOOGLE_CLIENT_ID=Your Client ID here
 GOOGLE_SECRET_KEY=Your Client Secret here
+HOST="http://localhost:3000"
+JWT_SIGN_SECRET= ...
+NODE_ENV="develop" or "production"
 ```
 
 ## 資料庫設定

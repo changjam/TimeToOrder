@@ -10,6 +10,7 @@ export default defineNuxtConfig({
     ]
   },
   runtimeConfig: {
+    jwtSignSecret: process.env.JWT_SIGN_SECRET,
     public: {
       googleClientId: process.env.GOOGLE_CLIENT_ID
     },

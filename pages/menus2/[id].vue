@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRoute } from '#app';
-import { classifyDishes } from '~/utils/menuHandler';
+import { classifyDishes } from '@/utils/menus/menuHandler';
 
 const route = useRoute();
 

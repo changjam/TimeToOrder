@@ -1,50 +1,23 @@
 <template>
   <h1>TimeToOrder</h1>
-  <div v-if="userInfo.sub">
+  <div v-if="userInfo.name">
     <p>Hello, {{ userInfo.name }}!</p><br>
-    <button @click="logout">登出</button>
+    <button @click="logout(userInfo)">登出</button>
   </div>
 </template>
 
 <script setup>
   import { onMounted } from 'vue'
-  import { addUserSession } from '@/utils/userSessionHandler'
-  import { useState } from '#app';
-  import mongoose from 'mongoose';
+  import { verify_credential } from '@/utils/auth/verifyHandler'
+  import { logout } from '@/utils/auth/logoutHandler'
   
   const router = useRouter();
-
-  const userInfo = reactive({sub: ''})
+  const userInfo = reactive({name: ''})
 
   onMounted(async () => {
-    const login_credential = localStorage.getItem('login_credential')
-    const response = await verify_credential(login_credential)
-    if (!response)
+    const data = await verify_credential()
+    if (!data)
       router.push('/login')
-    Object.assign(userInfo, response.payload)
+    Object.assign(userInfo, data)
   })
-
-  const logout = () => {
-    const userId = new mongoose.Types.ObjectId(useState('user_id').value);
-    const userName = useState('name').value;
-    addUserSession({'user_id':userId,'name': userName,'actions': "Logout"})
-
-    useState('user_id').value = null;
-    useState('name').value;
-
-
-    localStorage.setItem('login_credential', '')
-    Object.assign(userInfo, {})
-    router.push('/login')
-  }
-  
-  const verify_credential = async (credential) => {
-    const response = await useFetch('/api/auth/auth-verify', {
-      method: 'POST',
-      body: {credential}
-    })
-    if (response.status.value != 'success')
-      return;
-    return response.data.value
-  }
 </script>
