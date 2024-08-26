@@ -1,50 +1,46 @@
+<script setup>
+  import { onMounted } from 'vue'
+  import { verify_credential } from '@/utils/auth/verifyHandler'
+  import { logout } from '@/utils/auth/logoutHandler'
+  
+  const router = useRouter();
+  const userInfo = reactive({name: ''})
+
+  onMounted(async () => {
+    const data = await verify_credential()
+    if (!data)
+      router.push('/login')
+    Object.assign(userInfo, data)
+  })
+</script>
+
 <template>
-  <h1>TimeToOrder</h1>
-  <div v-if="userInfo.sub">
-    <p>Hello, {{ userInfo.name }}!</p><br>
-    <button @click="logout">登出</button>
+  <div class="container">
+    <h1 class="title">示範區</h1>
+    <div class="user-info-container" v-if="userInfo.name">
+      <div class="user-info" v-for="(value, key) in userInfo" :key="key">
+        {{ key }}:  {{ value }}
+      </div>
+    </div>
+    <button @click="logout(userInfo)">登出</button>
   </div>
 </template>
 
-<script setup>
-  import { onMounted } from 'vue'
-  import { addUserSession } from '@/utils/userSessionHandler'
-  import { useState } from '#app';
-  import mongoose from 'mongoose';
-  
-  const router = useRouter();
-
-  const userInfo = reactive({sub: ''})
-
-  onMounted(async () => {
-    const login_credential = localStorage.getItem('login_credential')
-    const response = await verify_credential(login_credential)
-    if (!response)
-      router.push('/login')
-    Object.assign(userInfo, response.payload)
-  })
-
-  const logout = () => {
-    const userId = new mongoose.Types.ObjectId(useState('user_id').value);
-    const userName = useState('name').value;
-    addUserSession({'user_id':userId,'name': userName,'actions': "Logout"})
-
-    useState('user_id').value = null;
-    useState('name').value;
-
-
-    localStorage.setItem('login_credential', '')
-    Object.assign(userInfo, {})
-    router.push('/login')
+<style scoped>
+  .container{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
   }
-  
-  const verify_credential = async (credential) => {
-    const response = await useFetch('/api/auth/auth-verify', {
-      method: 'POST',
-      body: {credential}
-    })
-    if (response.status.value != 'success')
-      return;
-    return response.data.value
+  .user-info-container{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    width: 50%;
+    height: 50%;
   }
-</script>
+</style>

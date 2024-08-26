@@ -1,8 +1,8 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { addRestaurant } from '@/utils/restaurantHandler'
-import { addMenu } from '@/utils/menuHandler'
+import { addRestaurant } from '@/utils/restaurants/restaurantHandler'
+import { addMenu } from '@/utils/menus/menuHandler'
 
 const restaurant = ref({
   name: '',

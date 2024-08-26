@@ -1,7 +1,7 @@
 import { config } from 'dotenv'
 
 export default defineNuxtConfig({
-  ssr: true,
+  ssr: false,
   modules: [],
   devtools:{ enabled: false },
   nitro: {
@@ -10,6 +10,7 @@ export default defineNuxtConfig({
     ]
   },
   runtimeConfig: {
+    jwtSignSecret: process.env.JWT_SIGN_SECRET,
     public: {
       googleClientId: process.env.GOOGLE_CLIENT_ID
     },
