@@ -4,7 +4,8 @@ const MenuSchema = new mongoose.Schema({
   restaurant: { type: mongoose.Schema.Types.ObjectId, ref: 'Restaurants', required: true },
   name: { type: String, required: true },
   price: { type: Number, required: true },
-  description: String,
+  category: { type: String, required: true },
+  cate_description: String,
   createdAt: { type: Date, default: Date.now },
 });
 

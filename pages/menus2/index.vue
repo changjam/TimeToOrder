@@ -1,6 +1,6 @@
 <script setup>
-import restaurantsJson from '~/assets/jsons/restaurants.json'
-const restaurants =  restaurantsJson.data
+const { data } = await useFetch('/api/restaurants/get');
+const items = data.value.data
 
 </script>
 
@@ -8,7 +8,7 @@ const restaurants =  restaurantsJson.data
     <div class="container">
       <h3>想吃甚麼?</h3>
       <div id="menus">
-        <MenuCard v-for="restaurant in restaurants" :restaurant="restaurant" :key="restaurant.id"></MenuCard>
+        <MenuCard2 v-for="item in items" :items="item" :key="item._id"></MenuCard2>
       </div>
     </div>
   </template>

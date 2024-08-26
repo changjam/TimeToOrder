@@ -1,16 +1,16 @@
-import { OAuth2Client } from 'google-auth-library'
+import jwt from 'jsonwebtoken'
 
 
 
 
-export default defineEventHandler(async (event) => {
-    console.log('server verify')
-    const body = await readBody(event)
-    const oauth2Client = new OAuth2Client()
-    const ticket = await oauth2Client.verifyIdToken({idToken: body.credential})
-    const payload = ticket.getPayload()
+const runtimeConfig = useRuntimeConfig()
 
-    if (!payload) 
-        throw createError({statusCode: 400, statusMessage: 'Invalid token'})
-    return { payload }
+export default defineEventHandler((event) => {
+  const jwtToken = getCookie(event, 'access_token')
+  try {
+    const userInfo = jwt.verify(jwtToken, runtimeConfig.jwtSignSecret)
+    return userInfo
+  } catch (e) {
+    throw createError({statusCode: 401, statusMessage: 'Unauthorized'})
+  }
 })
