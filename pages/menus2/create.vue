@@ -93,7 +93,7 @@ const handleFileChange = async (event) => {
       </div>
 
       <div>
-        <label for="image">餐廳圖片：</label>
+        <label for="image">菜單圖片：</label>
         <input type="file" id="image" @change="handleFileChange" />
         <div v-if="restaurant.image">
           <img :src="restaurant.image" alt="Selected Image" style="max-width: 300px; max-height: 300px; margin-top: 10px;" required/>

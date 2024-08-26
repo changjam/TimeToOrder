@@ -88,3 +88,4 @@ import { onMounted } from 'vue'
 .login-card .login-content{
 	text-align: center;
 }
+</style>

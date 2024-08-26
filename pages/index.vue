@@ -1,8 +1,8 @@
 <template>
-	<div class="index-wrapper" v-if="user.sub">
+	<div class="index-wrapper" v-if="userInfo.name">
 		<div class="user-info-wrapper">
-			<img id="user-avatar" :src="user.picture" alt="">
-			<h1>{{ user.name }} 你好!</h1>
+			<img id="user-avatar" :src="userInfo.image" alt="">
+			<h1>{{ userInfo.name }} 你好!</h1>
 		</div>
 
 		<nav class="features">
@@ -34,43 +34,20 @@
 
 <script setup>
 import { onMounted } from 'vue'
-import { useState } from '#app'
+import { verify_credential } from '@/utils/auth/verifyHandler'
+import { logout } from '@/utils/auth/logoutHandler'
 
 const router = useRouter();
-// const userInfo = reactive({ sub: '' })
-const user = useState('user', () => ({
-	name: '',
-	email: '',
-	loggedIn: false,
-	sub: '',
-}));
+const userInfo = reactive({ name: '' })
 
 onMounted(async () => {
-	const login_credential = localStorage.getItem('login_credential')
-	const response = await verify_credential(login_credential)
-	if (!response)
+	const data = await verify_credential()
+	if (!data)
 		router.push('/login')
-	Object.assign(user.value, response.payload)
-	console.log(user.value)
-
+	Object.assign(userInfo, data)
 })
-
-const logout = () => {
-	localStorage.setItem('login_credential', '')
-	Object.assign(user.value, {})
-	router.push('/login')
-}
-
-const verify_credential = async (credential) => {
-	const response = await useFetch('/api/auth/auth-verify', {
-		method: 'POST',
-		body: { credential }
-	})
-	if (response.status.value != 'success')
-		return;
-	return response.data.value
-}
 </script>
+
 <style>
 .index-wrapper {
 	width: 90%;
@@ -121,7 +98,7 @@ const verify_credential = async (credential) => {
 	font-size: 1.5rem;
 }
 
-.user-info-wrapper{	
+.user-info-wrapper {
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -131,5 +108,4 @@ const verify_credential = async (credential) => {
 	border-radius: 50%;
 	height: 5rem;
 }
-
 </style>
