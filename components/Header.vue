@@ -33,6 +33,8 @@ header.curved {
     overflow: hidden;
 
     background: transparent;
+
+    z-index: 100;
     
 }
 
@@ -45,6 +47,7 @@ header.curved::before {
     width: 100%;
     height: 100%;
     background: var(--light-gray);
+    /* background: #9dbcff; */
 
     border-radius: 0 0 50% 50%/0 0 100% 100%;
     border-bottom: 2px solid var(--gold);
@@ -53,7 +56,7 @@ header.curved::before {
 
 header.curved>* {
     position: relative;
-    z-index: 1;
+    z-index: 101;
 }
 
 #logo {

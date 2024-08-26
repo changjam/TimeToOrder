@@ -4,6 +4,11 @@ export default defineNuxtConfig({
   ssr: true,
   modules: [],
   devtools: { enabled: false },
+  nitro: {
+    plugins: [
+      '@/server/db_connect'
+    ]
+  },
   runtimeConfig: {
     public: {
       googleClientId: process.env.GOOGLE_CLIENT_ID
