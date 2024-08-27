@@ -22,11 +22,10 @@ export default defineEventHandler(async (event) => {
   try {
     const savedRestaurant = await restaurant.save();
 
-    // 返回包含餐廳 ID 和其他信息的對象
     return {
       success: true,
       message: 'Restaurant added successfully',
-      data: savedRestaurant // 返回保存的餐廳對象
+      data: savedRestaurant 
     };
   } catch (error) {
     return {

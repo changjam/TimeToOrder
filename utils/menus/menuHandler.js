@@ -27,3 +27,20 @@ export function classifyDishes(dishes) {
 
   return classified;
 }
+
+export async function getMenus(menuId) {
+  try {
+    const { data, error } = await useFetch(`/api/menus/get?_id=${menuId}`, {
+      method: 'GET',
+    });
+
+    if (error.value) {
+      throw new Error('Failed to fetch menus');
+    }
+
+    return data.value;
+  } catch (error) {
+    console.error('Failed to fetch menus:', error);
+    throw error;
+  }
+}
