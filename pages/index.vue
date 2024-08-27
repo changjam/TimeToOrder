@@ -2,7 +2,7 @@
 	<div class="index-wrapper" v-if="userInfo.name">
 		<div class="user-info-wrapper">
 			<img id="user-avatar" :src="userInfo.image" alt="">
-			<h1>{{ userInfo.name }} 你好!</h1>
+			<h1>{{ userInfo.name }} 你好！</h1>
 		</div>
 
 		<nav class="features">
@@ -106,6 +106,7 @@ onMounted(async () => {
 
 #user-avatar {
 	border-radius: 50%;
+	margin-right: 10px;
 	height: 5rem;
 }
 </style>

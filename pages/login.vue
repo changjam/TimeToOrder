@@ -3,7 +3,7 @@
 		<div class="login-card">
 			<img src="~/assets/images/plate.svg" alt="">
 			<div class="login-content">
-				<h2>快登入，別餓著自己！</h2>
+				<h2 class="login-title">快登入，別餓著自己！</h2>
 				<ClientOnly>
 					<GoogleLogin :callback="login" />
 				</ClientOnly>
@@ -59,10 +59,10 @@ import { onMounted } from 'vue'
   }
 </script>
 
-<style>
+<style scoped>
 .login-wrapper {
-	width: 80%;
-	height: 80%;
+	width: 100%;
+	height: 100%;
 
 	margin-inline: auto;
 	display: flex;
@@ -87,6 +87,11 @@ import { onMounted } from 'vue'
 }
 
 .login-card .login-content{
+  width: 100%;
 	text-align: center;
+}
+
+.login-card .login-content .login-title{
+  margin-bottom: 10px;
 }
 </style>

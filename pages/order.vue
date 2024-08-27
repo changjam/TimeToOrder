@@ -63,6 +63,7 @@ const getUserOrder = () => {
 }
 
 .order-wrapper {
+    padding: 50px 0;
     width: 80%;
     margin-inline: auto;
 }
