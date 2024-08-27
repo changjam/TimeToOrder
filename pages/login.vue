@@ -21,6 +21,7 @@
       body: {credential}
     })
     const user_info = data.value.jwtTokenPayload
+    console.log(user_info)
     if (!user_info) return;
 
     // add user login session
