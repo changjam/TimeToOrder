@@ -17,3 +17,13 @@ export async function addRestaurant(data) {
   }
 }
 
+
+export async function getRestaurant() {
+  try{
+    const data = await useFetch('/api/restaurants/get');
+    return data.data.value.data;    
+  }catch(error){
+    console.log(error);
+  }
+
+}
