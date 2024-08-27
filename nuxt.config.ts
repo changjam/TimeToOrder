@@ -3,7 +3,7 @@ import { config } from 'dotenv'
 export default defineNuxtConfig({
   ssr: false,
   modules: [],
-  devtools:{ enabled: false },
+  devtools: { enabled: false },
   nitro: {
     plugins: [
       '@/server/db_connect'
