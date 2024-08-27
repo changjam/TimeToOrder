@@ -1,5 +1,19 @@
+<template>
+	<div class="login-wrapper">
+		<div class="login-card">
+			<img src="~/assets/images/plate.svg" alt="">
+			<div class="login-content">
+				<h2>快登入，別餓著自己！</h2>
+				<ClientOnly>
+					<GoogleLogin :callback="login" />
+				</ClientOnly>
+			</div>
+		</div>
+	</div>
+</template>
+
 <script setup>
-  import { onMounted } from 'vue'
+import { onMounted } from 'vue'
   import { useFetch } from '#app';
   import { addUserSession } from '@/utils/user_session/userSessionHandler'
   import { verify_credential } from '@/utils/auth/verifyHandler'
@@ -45,23 +59,34 @@
   }
 </script>
 
-<template>
-  <div class="container">
-    <h1 >快登入，別餓著自己！</h1>
-    <ClientOnly>
-      <GoogleLogin class="sign_in_btn_wrapper" :callback="login"/>
-    </ClientOnly>
-  </div>
-</template>
+<style>
+.login-wrapper {
+	width: 80%;
+	height: 80%;
 
-<style scoped>
-  .container{
-    width: 100%;
-    height: 60%;
-    display: flex;
-    flex-direction: column;
-    gap: 30px;
-    justify-content: center;
-    align-items: center;
-  }
+	margin-inline: auto;
+	display: flex;
+
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+}
+
+.login-card {
+	height: 300px;
+	width: 300px;
+	position: relative;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.login-card img {
+	position: absolute;
+	z-index: -1;
+}
+
+.login-card .login-content{
+	text-align: center;
+}
 </style>
