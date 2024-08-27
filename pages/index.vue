@@ -7,7 +7,7 @@
 
 		<nav class="features">
 			<OrderCard />
-			<CreateOrderCard />
+			<CreateRestCard />
 			<RestaurantCard />
 			<!-- <FeatureCard :Feature="{id:'order' , name:'開始點單'}" FontSize="5.5em" :FontLine="6"/> -->
 			<!-- <FeatureCard :Feature="{id:'create-order' , name:'建立訂單'}" FontSize="5.5em" :FontLine="6"/> -->

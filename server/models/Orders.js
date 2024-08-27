@@ -3,8 +3,9 @@ import mongoose from 'mongoose';
 const OrderSchema = new mongoose.Schema({
   restaurant: { type: mongoose.Schema.Types.ObjectId, ref: 'Restaurants', required: true },
   groupIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Groups' }],
-  deadline: { type: Date, required: true },
+  deadline: Date ,
   createdAt: { type: Date, default: Date.now },
+  name: { type: String, required: true },
   creator: { type: mongoose.Schema.Types.ObjectId, ref: 'Users', required: true },
   status: {
     type: String,
