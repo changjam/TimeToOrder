@@ -2,7 +2,6 @@ import mongoose from 'mongoose';
 
 const OrderSchema = new mongoose.Schema({
   order_name: { type: String, required: true },
-  deadline: Date ,
   createdAt: { type: Date, default: Date.now, required: true },
   order_open_time: { type: Date, default: Date.now, required: true },
   order_lock_time: { type: Date, default: function() {return new Date(this.order_open_time.getTime() + 60 * 60 * 1000);}, required: true },
@@ -12,7 +11,7 @@ const OrderSchema = new mongoose.Schema({
   status: {
     type: String,
     enum: ['Available', 'Locked', 'In_Progress', 'Finished', 'Canceled'],
-    default: 'Available',
+    default: 'Locked',
   },
   notes: { type: String, default: '' },
 });
