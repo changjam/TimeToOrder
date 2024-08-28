@@ -1,9 +1,9 @@
 import mongoose from 'mongoose';
 
 const PermissionLevels = new mongoose.Schema({
-    0: 'admin',
-    1: 'order_createAble',
-    2: 'member',
+    'admin': 0,
+    'order_manager': 1,
+    'member': 2,
 });
 
 export default mongoose.model('PermissionLevels', PermissionLevels);
