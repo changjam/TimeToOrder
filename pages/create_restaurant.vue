@@ -134,23 +134,23 @@
     <form @submit.prevent="handleSubmit" class="restaurant-form" v-if="isAddingRestaurant">
       <div class="form-group">
         <label for="name">餐廳名稱：</label>
-        <input type="text" v-model="restaurant.name" id="name" class="form-input" required />
+        <input type="text" v-model="restaurant.name" id="name" class="form-input" required autocomplete="off"/>
       </div>
 
       <div class="form-group">
         <label for="phone">電話：</label>
-        <input type="text" v-model="restaurant.phone" id="phone" class="form-input" required />
+        <input type="text" v-model="restaurant.phone" id="phone" class="form-input" required autocomplete="off"/>
       </div>
 
       <div class="form-group">
         <label for="address">地址：</label>
-        <input type="text" v-model="restaurant.address" id="address" class="form-input" required />
+        <input type="text" v-model="restaurant.address" id="address" class="form-input" required autocomplete="off"/>
       </div>
 
       <div class="form-group">
         <label>類型：</label>
         <div v-for="(type, index) in restaurant.types" :key="index" class="type-group">
-          <input type="text" v-model="restaurant.types[index]" placeholder="輸入類型" class="type-input" required />
+          <input type="text" v-model="restaurant.types[index]" placeholder="輸入類型" class="type-input" required autocomplete="off"/>
           <button type="button" @click="addType" class="btn-add">新增</button>
           <button type="button" @click="removeType(index)" class="btn-remove">移除</button>
         </div>
@@ -158,7 +158,7 @@
 
       <div class="form-group">
         <label for="image">菜單圖片：</label>
-        <input type="file" id="image" @change="handleFileChange" class="file-input" />
+        <input type="file" id="image" @change="handleFileChange" class="file-input" autocomplete="off"/>
         <div v-if="restaurant.image" class="image-preview">
           <img :src="restaurant.image" alt="Selected Image" class="preview-image" />
         </div>
@@ -171,27 +171,27 @@
     <div v-if="menuItems.length">
         <div class="form-group">
         <label for="addByImage">以菜單新增：</label>
-        <input type="file" @change="addbyimage" id="addByImage" />
+        <input type="file" @change="addbyimage" id="addByImage" autocomplete="off"/>
         </div>
         <div class="menu-item-group">
         <div class="form-group">
             <label for="name">餐點：</label>
-            <input type="text" v-model="menuItems[currentMenuItemIndex].name" id="name" class="form-input" required />
+            <input type="text" v-model="menuItems[currentMenuItemIndex].name" id="name" class="form-input" required autocomplete="off"/>
         </div>
 
         <div class="form-group">
             <label for="price">價格：</label>
-            <input type="float" v-model="menuItems[currentMenuItemIndex].price" id="price" class="form-input" required/>
+            <input type="float" v-model="menuItems[currentMenuItemIndex].price" id="price" class="form-input" required autocomplete="off"/>
         </div>
 
         <div class="form-group">
             <label for="category">分類：</label>
-            <input type="text" v-model="menuItems[currentMenuItemIndex].category" id="category" class="form-input" required />
+            <input type="text" v-model="menuItems[currentMenuItemIndex].category" id="category" class="form-input" required autocomplete="off"/>
         </div>
 
         <div class="form-group">
             <label for="cate_description">分類描述：</label>
-            <input type="text" v-model="menuItems[currentMenuItemIndex].cate_description" id="cate_description" class="form-input" />
+            <input type="text" v-model="menuItems[currentMenuItemIndex].cate_description" id="cate_description" class="form-input" autocomplete="off"/>
         </div>
         </div>
 

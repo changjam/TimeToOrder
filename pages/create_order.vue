@@ -88,7 +88,7 @@
 
     <div class="form-group">
       <label for="orderName">訂單名稱:</label>
-      <input v-model="orderName" id="orderName" type="text" placeholder="輸入訂單名稱" class="input-field" />
+      <input v-model="orderName" id="orderName" type="text" placeholder="輸入訂單名稱" class="input-field" autocomplete="off" />
     </div>
 
     <button @click="toggleRestaurantList" class="toggle-button">選擇餐廳</button>
@@ -100,6 +100,7 @@
           @change="selectRestaurant(restaurant._id, restaurant.name)"
           :checked="selectedRestaurantId === restaurant._id"
           class="restaurant-radio"
+          autocomplete="off"
         />
         <label :for="restaurant._id" class="restaurant-info">
           <img :src="restaurant.image" alt="Restaurant Image" class="restaurant-image"/>
@@ -122,6 +123,7 @@
           @change="selectGroup(group._id, group.name)"
           :checked="selectedGroupId === group._id"
           class="group-radio"
+          autocomplete="off"
         />
         <label :for="group._id" class="group-info">
           <h2>{{ group.name }}</h2>
