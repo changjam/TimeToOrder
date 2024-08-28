@@ -1,4 +1,8 @@
 <script setup>
+import { useCookie } from '#app'
+var user_id = useCookie('user_id')
+// user_id = user_id.value
+
 
 const _orders = ref(null)
 let endtime = new Date(Date.now());

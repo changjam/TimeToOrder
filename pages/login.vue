@@ -13,15 +13,24 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+  import { onMounted } from 'vue'
   import { useFetch } from '#app';
   import { addUserSession } from '@/utils/user_session/userSessionHandler'
   import { verify_credential } from '@/utils/auth/verifyHandler'
+  import { getUserData } from '@/utils/users/userHandler'
+  import { useCookie } from '#app'
 
   const router = useRouter();
 
   onMounted(async () => {
     const data = await verify_credential()
+    const user_info = await getUserData(`user_id=${data.user_id}`)
+    const user_id_cookie = useCookie('user_id')
+    user_id_cookie.value = user_info.data._id
+    user_id_cookie.option = {
+      maxAge: 24*60*60,
+      path: '/',
+    }
     if (!data) return;
     router.push('/');
   })
