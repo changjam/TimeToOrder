@@ -1,15 +1,23 @@
 <script setup>
 import { useCookie } from '#app'
-var user_id = useCookie('user_id')
-// user_id = user_id.value
-
+import { getUserData } from '@/utils/users/userHandler'
+import { getOrders } from '@/utils/order/orderHandler'
 
 const _orders = ref(null)
 let endtime = new Date(Date.now());
 timeFormating(endtime)
 
-onMounted(() => {
-    _orders.value = getUserOrder()
+onMounted(async() => {
+    const user_id = useCookie('user_id').value;
+    const user_info = await getUserData(`_id=${user_id}`);
+    const joinedGroups = user_info.data.joinedGroups;
+    console.log(joinedGroups[0])
+
+    /////////////////// info 是可以給前端用的資訊
+    for (const group of joinedGroups){
+        const info = await getOrders(group);
+        console.log(info.data[0])
+    }
 })
 
 function timeFormating(time) {
