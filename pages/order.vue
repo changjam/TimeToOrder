@@ -2,53 +2,77 @@
 import { useCookie } from '#app'
 import { getUserData } from '@/utils/users/userHandler'
 import { getOrders } from '@/utils/order/orderHandler'
+import { getMenus } from '@/utils/menus/menuHandler';
 
-const _orders = ref(null)
-let endtime = new Date(Date.now());
-timeFormating(endtime)
+const order = ref([])
+const creator = ref(null)
+const priceRange = ref(null)
 
 onMounted(async() => {
     const user_id = useCookie('user_id').value;
     const user_info = await getUserData(`_id=${user_id}`);
     const joinedGroups = user_info.data.joinedGroups;
-    console.log(joinedGroups[0])
 
     /////////////////// info 是可以給前端用的資訊
     for (const group of joinedGroups){
         const info = await getOrders(group);
-        console.log(info.data[0])
+        if (info.data[0]){
+            order.value.push(info.data[0])
+        }
     }
 })
 
 function timeFormating(time) {
-    const _ISOString = time.toISOString()
-    const timeString = _ISOString.substr(11, 8)
-    const dateString = _ISOString.substr(5, 5)
+    const date = new Date(time);
+    const timeString = date.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const dateString = date.toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' });
     
-    return [timeString, dateString]
+    return `${dateString} ${timeString}`;
 }
 
 
-const getUserOrder = () => {
-    // 根據使用者ID找到可以訂購的訂單
+async function getCreatorName(id){
+    const user_info = await getUserData(`_id=${id}`);
+    creator.value = user_info.data.name
+    return creator.value
 }
+
+
+const getPriceRange = async (restaurantId) => {
+    let minPrice = Infinity;
+    let maxPrice = -Infinity;
+    try {
+    const menu_data = await getMenus(`restaurant=${restaurantId}`);
+    for ( const data of menu_data.data){
+        const price = data.price;
+        if (price < minPrice) minPrice = price;
+        if (price > maxPrice) maxPrice = price;
+    }
+    priceRange.value = `$${minPrice}~$${maxPrice}`
+    } catch(error){
+        console.log(error)
+    }
+  };
+
 </script>
 
 <template>
-    <div v-if="_orders" class="order-wrapper">
+    <div v-if="order" class="order-wrapper">
         <div class="order-list">
-
-            <div class="order-container">
+            <div class="order-container" v-for="item in order" :key="item._id">
                 <section class="main">
-                    <h1>皋月現代日本料理</h1>
-                    <span class="master">訂購人:葉晉瑋</span>
+                    <h1>{{ item.order_name }}</h1>
+                    <span class="master" v-if="getCreatorName(item.creator_id)">創建人:{{ creator }}</span>
                 </section>
                 <section class="info">
-                    <span>價位$100~$200</span>
-                    <span>截止時間 {{ timeFormating(endtime)[0]  }} </span>
+                    <span v-if="getPriceRange(item.restaurant_id._id)">{{ priceRange }}</span>
+                    <span>截止時間: {{ timeFormating(item.order_lock_time) }}</span>
                 </section>
             </div>
-
+        <h1 class="error-msg">新增其他訂單</h1>
+        <nav class="features">
+            <CreateOrderCard />
+        </nav>
 
         </div>
     </div>

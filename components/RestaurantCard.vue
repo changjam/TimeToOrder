@@ -1,9 +1,10 @@
 <script setup>
-
+    import { useRouter } from 'vue-router'
+    const router = useRouter()
 </script>
 
 <template>
-    <div id="restaurantCard">
+    <div id="restaurantCard" @click="router.push({path:'/restaurants'})">
         <h1>查看餐廳</h1>
         <img src="~/assets/images/restaurant.svg" alt="">
     </div>

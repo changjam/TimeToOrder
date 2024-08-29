@@ -1,6 +1,7 @@
 <script setup>
 import restaurantsJson from '~/assets/jsons/restaurants.json'
 const restaurants =  restaurantsJson.data
+console.log(restaurants)
 
 </script>
 

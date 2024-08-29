@@ -1,14 +1,12 @@
 import Menu from '@/server/models/Menus';
+import { parse } from 'url';
 
 export default defineEventHandler(async (event) => {
+  const { query } = parse(event.node.req.url, true)
+
   try {
-    const menu_id = event._path.match(/_id=([^&]*)/)[1]
-    const menu = await Menu.find({restaurant : menu_id}).populate('restaurant');
-    if (menu) {
-      return { success: true, data: menu };
-    } else {
-      return { success: false, message: 'Menu not found' };
-    }
+    const menu = await Menu.find(query);
+    return { success: true, data: menu };
   } catch (error) {
     return { success: false, message: 'Failed to fetch menu', error };
   }

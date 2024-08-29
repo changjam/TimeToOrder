@@ -16,31 +16,26 @@ export function classifyDishes(dishes) {
   const classified = {};
 
   dishes.forEach(dish => {
-    const { category, name, price, cate_description } = dish;
+    const { category, name, price, cate_description , _id , restaurant} = dish;
 
     if (!classified[category]) {
       classified[category] = [];
     }
 
-    classified[category].push({ name, price, cate_description });
+    classified[category].push({_id , restaurant, name, price, cate_description });
   });
 
   return classified;
 }
 
-export async function getMenus(menuId) {
+export async function getMenus(data) {
   try {
-    const { data, error } = await useFetch(`/api/menus/get?_id=${menuId}`, {
-      method: 'GET',
-    });
+      const response = await $fetch(`/api/menus/get?${data}`, {
+          method: 'GET',
+      });
+      return response;
 
-    if (error.value) {
-      throw new Error('Failed to fetch menus');
-    }
-
-    return data.value;
   } catch (error) {
-    console.error('Failed to fetch menus:', error);
-    throw error;
+      throw new Error('Failed to get MenuData');
   }
 }

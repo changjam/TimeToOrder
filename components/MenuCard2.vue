@@ -2,6 +2,7 @@
 import { getPriceRange } from '@/utils/dishesHandler'
 const props = defineProps(['items'])
 const restaurant = props.items
+console.log(restaurant)
 
 const router = useRouter();
 const openUrl = (link) => {
