@@ -59,7 +59,7 @@ const getPriceRange = async (restaurantId) => {
 <template>
     <div v-if="order" class="order-wrapper">
         <div class="order-list">
-            <div class="order-container" v-for="item in order" :key="item._id">
+            <div class="order-container" v-for="item in order" :key="item._id" @click="$router.push(`restaurants/${item.restaurant_id._id}`)">
                 <section class="main">
                     <h1>{{ item.order_name }}</h1>
                     <span class="master" v-if="getCreatorName(item.creator_id)">創建人:{{ creator }}</span>

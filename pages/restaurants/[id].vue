@@ -10,7 +10,7 @@ const _id = route.fullPath.match(/\/restaurants\/(.+)/)[1];
 const menu_data = ref(null);
 const classifiedMenu = ref({});
 const classifiedDishes = ref(null)
-const categories = ref(null);
+var categories = ref(null);
 
 const fetchMenus = async (restaurantId) => {
     try {

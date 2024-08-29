@@ -6,7 +6,7 @@ const restaurant = props.restaurants
 console.log(restaurant._id)
 const router = useRouter();
 const openUrl = (link) => {
-    router.push({ path: `/menus2/${link}` })
+    router.push({ path: `/restaurants/${link}` })
 }
 
 const getPriceRange = async (restaurantId) => {
