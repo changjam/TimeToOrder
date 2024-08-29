@@ -2,7 +2,7 @@
 	<div class="index-wrapper" v-if="userInfo.name">
 		<div class="user-info-wrapper">
 			<img id="user-avatar" :src="userInfo.image" alt="">
-			<h1>{{ userInfo.name }} 你好！</h1>
+			<h1>{{ userInfo.name }} 你可以</h1>
 		</div>
 
 		<nav class="features">
@@ -14,8 +14,8 @@
 			<!-- <FeatureCard :Feature="{id:'restaurant' , name:'查看餐廳'}" FontSize="5.5em" :FontLine="6"/> -->
 
 			<nav class="sub-features">
-				<div>
-					<p @click="router.push('/group')">查看群組</p>
+				<div @click="router.push({path:'group'})">
+					<p>查看群組</p>
 				</div>
 				<div>
 					<p>歷史訂單</p>
@@ -86,7 +86,13 @@ onMounted(async () => {
 	margin-top: 1rem;
 }
 
-.features>div,
+.features>div{
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+
 .sub-features>div {
 	height: 100%;
 	display: flex;
@@ -96,6 +102,8 @@ onMounted(async () => {
 	background: rgb(45, 58, 92);
 	color: white;
 	border: 3px solid var(--gold);
+	filter: grayscale(80%);
+	transition: filter 0.5s ease;
 }
 
 .sub-features {
@@ -107,6 +115,7 @@ onMounted(async () => {
 
 .sub-features>div:hover {
 	cursor: pointer;
+	filter: grayscale(0);
 }
 
 .sub-features div p {
