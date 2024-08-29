@@ -44,13 +44,18 @@ const userInfo = reactive({ name: '' })
 
 onMounted(async () => {
 	const data = await verify_credential()
-	const user_info = await getUserData(`user_id=${data.user_id}`)
-	const user_id_cookie = useCookie('user_id')
-	user_id_cookie.value = user_info.data._id
-	user_id_cookie.option = {
-		maxAge: 24*60*60,
-		path: '/',
+	try{
+		const user_info = await getUserData(`user_id=${data.user_id}`)
+		const user_id_cookie = useCookie('user_id')
+		user_id_cookie.value = user_info.data._id
+		user_id_cookie.option = {
+			maxAge: 24*60*60,
+			path: '/',
+		}	
+	}catch(error){
+		console.log("Does not Login")
 	}
+	
 
 	if (!data)
 		router.push('/login')
