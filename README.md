@@ -19,7 +19,7 @@ NODE_ENV="develop" or "production"
 ```
 
 ## MongoDB Setup
-```
+
 1. Install MongoDB Environment (https://www.mongodb.com/try/download/community)
 ![Install MongoDB Environment](assets/readme/mongo_env.png)
 Install Latest Version of MongoDB Community Server
@@ -27,7 +27,7 @@ Install Latest Version of MongoDB Community Server
 Choose Complete
 
 2. Install MongoDB Compass (https://www.mongodb.com/products/tools/compass)
-```
+
 
 ### Start to Order 
 Hope you enjoy using this website!
