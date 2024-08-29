@@ -65,7 +65,7 @@ const getPriceRange = async (restaurantId) => {
                     <span class="master" v-if="getCreatorName(item.creator_id)">創建人:{{ creator }}</span>
                 </section>
                 <section class="info">
-                    <span v-if="getPriceRange(item.restaurant_id._id)">{{ priceRange }}</span>
+                    <span v-if="getPriceRange(item.restaurant_id._id)">價格: {{ priceRange }}</span>
                     <span>截止時間: {{ timeFormating(item.order_lock_time) }}</span>
                 </section>
             </div>
