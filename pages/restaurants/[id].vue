@@ -7,16 +7,18 @@ const route = useRoute();
 const router = useRouter();
 
 const _id = route.fullPath.match(/\/restaurants\/(.+)/)[1];
-const loading = ref(false);
+const menu_data = ref(null);
 const classifiedMenu = ref({});
+const classifiedDishes = ref(null)
+const categories = ref(null);
 
 const fetchMenus = async (restaurantId) => {
-    loading.value = true;
     try {
-      const menu_data = await getMenus(`restaurant=${restaurantId}`);
-      return classifyDishes(menu_data.data);
-    } finally {
-      loading.value = false;
+      menu_data.value = await getMenus(`restaurant=${restaurantId}`);
+      classifiedDishes.value = classifyDishes(menu_data.value.data);
+      categories = Object.keys(classifiedDishes.value);
+    }catch(error) {
+      console.log(error)
     }
 };
 
@@ -28,120 +30,161 @@ onMounted(async () => {
 const goBack = () => {
   router.push('/restaurants');
 };
+
+const resultWrapper = ref(null);
+
+const test = (dish) => {
+  const volumeElement = document.getElementById(`volume-${dish.name}`);
+  const remarkElement = document.getElementById(`remark-${dish.name}`);
+  
+  const volume = volumeElement ? volumeElement.value : 0;
+  const remark = remarkElement ? remarkElement.value : '';
+  
+  if (volume > 0) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <th scope="row" class="cell">${dish.name}</th>
+      <td class="price" class="cell">${dish.price}</td>
+      <td align="right" class="cell">${volume}個</td>
+      <td align="right" class="cell">${remark}</td>
+    `;
+    
+    if (resultWrapper.value) {
+      resultWrapper.value.appendChild(tr);
+    }
+    
+    if (volumeElement) volumeElement.value = 0;
+    if (remarkElement) remarkElement.value = '';
+  } else {
+    alert('數量必須大於0');
+  }
+};
 </script>
 
+
 <template>
-  <div class="restaurant-wrapper">
-    <div v-if="loading" class="loading">
-      <p>Loading...</p>
-    </div>
-    <div v-else>
-      <h1 class="restaurant-title">Restaurant Menu</h1>
-      <div v-if="Object.keys(classifiedMenu).length">
-        <div v-for="(dishes, category) in classifiedMenu" :key="category" class="menu-category">
-          <h2 class="category-title">{{ category }}</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>餐點</th>
-                <th>價錢</th>
-                <th>餐點描述</th>
+    <div class="restaurant-wrapper">
+      <div class="menu-wrapper">
+        <h2>菜單</h2>
+        <table>
+          <thead>
+            <tr>
+              <th scope="col" class="name">餐點</th>
+              <th scope="col" class="price">價錢</th>
+              <th scope="col" class="num">數量</th>
+              <th scope="col" class="remark">備註</th>
+              <th scope="col"></th>
+            </tr>
+          </thead>
+          <tbody v-if="menu_data">
+            <template v-for="category in categories" :key="category">
+              <tr class="dish.category">
+                <th colspan="1">{{ category }}</th>
+                <th colspan="4"></th>
               </tr>
-            </thead>
-            <tbody>
-              <tr v-for="dish in dishes" :key="dish._id">
-                <td>{{ dish.name }}</td>
-                <td>{{ dish.price }}</td>
-                <td>{{ dish.cate_description }}</td>
+              <tr v-for="dish in classifiedDishes[category]" :key="dish.name">
+                <th scope="row" class="name">{{ dish.name }}</th>
+                <td class="price">{{ dish.price }}</td>
+                <td align="right">
+                  <input type="number" :id="`volume-${dish.name}`" value="0" min="0" class="no-arrows">
+                </td>
+                <td align="right">
+                  <input type="text" :id="`remark-${dish.name}`">
+                </td>
+                <td>
+                  <button @click="test(dish)">確認</button>
+                </td>
               </tr>
-            </tbody>
-          </table>
-        </div>
+            </template>
+          </tbody>
+        </table>
       </div>
-      <p v-if="!Object.keys(classifiedMenu).length">No menu items found.</p>
+      <div class="result-wrapper">
+        <h2>訂購資訊</h2>
+        <table>
+          <thead>
+            <tr>
+              <th scope="col" class="name">餐點</th>
+              <th scope="col" class="price">價錢</th>
+              <th scope="col" class="num">數量</th>
+              <th scope="col" class="remark">備註</th>
+            </tr>
+          </thead>
+          <tbody ref="resultWrapper">
+            
+          </tbody>
+        </table>
+      </div>
     </div>
-    <button @click="goBack" class="back-button">返回餐廳</button>
-  </div>
-</template>
+  </template>
+  
 
-<style scoped>
+<style>
 .restaurant-wrapper {
-  width: 80%;
-  margin: 2rem auto;
-  padding: 1rem;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  background-color: #f9f9f9;
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    width: 80%;
+    margin-inline: auto;
+    padding-top: 1rem;
+    gap: 1rem;
 }
 
-.restaurant-title {
-  text-align: center;
-  font-size: 2rem;
-  margin-bottom: 1rem;
-  color: #333;
+.restaurant-wrapper  h2{
+    text-align: center;
+    margin-bottom: 1rem;
 }
 
-.menu-category {
-  margin-bottom: 2rem;
+
+.restaurant-wrapper table {
+    border-collapse: collapse;
+    border: 2px solid rgb(140 140 140);
+    font-family: sans-serif;
+    font-size: 1rem;
+    letter-spacing: 1px;
+    width: 100%;
 }
 
-.category-title {
-  font-size: 1.8rem;
-  color: #007bff;
-  margin-bottom: 1rem;
+.restaurant-wrapper th,
+.restaurant-wrapper td {
+    border: 1px solid rgb(160 160 160);
+    padding: 0.5rem;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 1rem;
+.restaurant-wrapper th>*,
+.restaurant-wrapper td>* {
+    width: 100%;
 }
 
-th, td {
-  padding: 0.8rem;
-  text-align: left;
-  border-bottom: 1px solid #ddd;
+.menu-wrapper input[type="number"] {
+    text-align: end;
+    display: block;
+    max-width: 5rem;
 }
 
-th {
-  background-color: #f4f4f4;
-  color: #333;
-  font-weight: bold;
+.menu-wrapper input[type="text"] {
+    text-align: right;
 }
 
-td {
-  color: #666;
+.menu-wrapper .name {
+    text-align: left;
 }
 
-tbody tr:nth-child(even) {
-  background-color: #f9f9f9;
+.menu-wrapper .price,
+.menu-wrapper .num {
+    text-align: right;
 }
 
-tbody tr:hover {
-  background-color: #f1f1f1;
-  cursor: pointer;
+.menu-wrapper .category{
+    font-size: 1.2rem;
 }
 
-p {
-  text-align: center;
-  font-size: 1.2rem;
-  color: #777;
+.result-wrapper {
+    width: 100%;
 }
 
-.back-button {
-  display: block;
-  margin: 2rem auto;
-  padding: 0.8rem 1.5rem;
-  background-color: #28a745;
-  color: #fff;
-  border: none;
-  border-radius: 5px;
-  font-size: 1.2rem;
-  cursor: pointer;
-  text-align: center;
+button:hover {
+    cursor: pointer;
 }
 
-.back-button:hover {
-  background-color: #218838;
-}
+
 </style>

@@ -1,27 +1,45 @@
 <script setup>
-import { getPriceRange } from '@/utils/dishesHandler'
-const props = defineProps(['items'])
-const restaurant = props.items
-console.log(restaurant)
-
+import { getMenus } from '@/utils/menus/menuHandler';
+const priceRange = ref(null)
+const props = defineProps(['restaurants'])
+const restaurant = props.restaurants
+console.log(restaurant._id)
 const router = useRouter();
 const openUrl = (link) => {
     router.push({ path: `/menus2/${link}` })
 }
 
+const getPriceRange = async (restaurantId) => {
+    let minPrice = Infinity;
+    let maxPrice = -Infinity;
+    try {
+        const menu_data = await getMenus(`restaurant=${restaurantId}`);
+        for ( const data of menu_data.data){
+            const price = data.price;
+            if (price < minPrice) minPrice = price;
+            if (price > maxPrice) maxPrice = price;
+        }
+        if (minPrice!== Infinity && maxPrice!== -Infinity){
+            priceRange.value = `$${minPrice}~$${maxPrice}` 
+        }else{
+            priceRange.value = "無資料"
+        }
+    } catch(error){
+        console.log(error)
+    }
+  };
+
 </script>
 
 <template>
-    <!-- :title="restaurant.link" @click="openUrl(restaurant.id)" -->
     <div class="menu-card">
         <div class="image-container" @click="openUrl(restaurant._id)">
             <img :src="`${restaurant.image}`" alt="餐廳圖片" class="restaurant-picture">
-            <!-- <img src="~assets/images/1.jpg" alt="餐廳圖片" class="restaurant-picture"> -->
         </div>
         <div class="restaurant-info">
             <h2>{{ restaurant.name }}</h2>
             <p>電話:{{ restaurant.phone }}</p>
-            <!-- <p>價格:{{ `$${minPrice}~$${maxPrice}` }}</p> -->
+            <p v-if="getPriceRange(restaurant._id)">價格:{{ priceRange }}</p>
         </div>
         <div class="tag-container">
             <div v-for="type in restaurant.types">{{ type }}</div>
