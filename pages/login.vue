@@ -31,8 +31,7 @@ const handleGoogleAccessTokenLogin = async () => {
   const { access_token } = await googleTokenLogin({ clientId: process.env.GOOGLE_CLIENT_ID });
 
   if (!access_token) {
-    // 登入失敗
-    return console.log("登入失敗")
+    return
   }
 
   const { data } = await useFetch('/api/auth/google-auth-token', {
@@ -82,49 +81,10 @@ onMounted(async () => {
   router.push('/');
 })
 
-onMounted(async () => {
-  const data = await verify_credential()
-  if (!data) return;
-  router.push('/');
-})
-
-const login = async (response) => {
-  // credential => JWT(JSON Web Token)  
-  const { credential } = response
-
-  const { data } = await useFetch('/api/auth/google', {
-    method: 'POST',
-    body: { credential }
-  })
-
-  const user_info = data.value.jwtTokenPayload
-  if (!user_info) return;
-
-  // add user login session
-  addUserSession({
-    'user_id': user_info.user_id,
-    'name': user_info.name,
-    'email': user_info.email,
-    'actions': "Login"
-  })
-
-  // register
-  try {
-    await useFetch('/api/users/post', {
-      method: 'POST',
-      body: user_info,
-    });
-  } catch (error) {
-    console.log("Already registered or Other Error")
-  }
-  router.push('/');
-}
 </script>
 
-<style scoped>
+<style>
 .login-wrapper {
-  width: 100%;
-  height: 100%;
   width: 80%;
   height: 80%;
 

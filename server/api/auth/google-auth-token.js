@@ -23,13 +23,4 @@ export default defineEventHandler(async (event) => {
 
     setCookie(event, 'access_token', jwtToken, { httpOnly: true, maxAge, expires: new Date(expires * 1000), secure: process.env.NODE_ENV === 'production', path: '/' })
     return { jwtTokenPayload }
-
-
-    return {
-        id: userInfo.sub,
-        name: userInfo.name,
-        avatar: userInfo.picture,
-        email: userInfo.email,
-        emailVerified: userInfo.email_verified
-    }
 })
