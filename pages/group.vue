@@ -33,6 +33,7 @@ for (const group of joinedGroups) {
   groupDataList.value.push(groupdata.data)
 }
 
+console.log("groupDataList.value:::",groupDataList.value[0][0])
 
 showCreateGroupForm.value = groupDataList.value.length === 0
 
@@ -101,9 +102,9 @@ const createGroup = async () => {
     <div v-else>
       <div class="group-list">
         <h2>已加入群組</h2>
-        <div v-for="group in groupDataList" :key="group._id" class="group-item">
-          <h3>{{ group.name }}</h3>
-          <p>創建時間: {{ new Date(group.created_at).toLocaleString() }}</p>
+        <div v-for="group in groupDataList" :key="group[0]._id" class="group-item">
+          <h3>{{ group[0].name }}</h3>
+          <p>創建時間: {{ new Date(group[0].created_at).toLocaleString() }}</p>
         </div>
       </div>
 

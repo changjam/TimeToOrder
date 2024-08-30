@@ -11,9 +11,9 @@ export async function getUserData(data) {
 }
 
 
-export async function updateUserGroup(_id, group) {
+export async function updateUserGroup(id, group) {
     try {
-      const response = await $fetch(`/api/users/put?_id=${_id}&group=${group}`, {
+      const response = await $fetch(`/api/users/put?user_id=${id}&group=${group}`, {
         method: 'PUT',
       });
       return response;

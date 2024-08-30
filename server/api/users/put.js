@@ -4,11 +4,11 @@ import { parse } from 'url';
 export default defineEventHandler(async (event) => {
   const { query } = parse(event.node.req.url, true);
   
-  const { _id, group } = query;
+  const { user_id, group } = query;
 
   try {
     const user = await User.findOneAndUpdate(
-      { _id },
+      { user_id },
       { $addToSet: { joinedGroups: group } }, 
       { new: true }
     );
