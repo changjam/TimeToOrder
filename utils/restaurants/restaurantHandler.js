@@ -7,7 +7,7 @@ export async function addRestaurant(data) {
   });
 
   if (error.value) {
-    throw new Error('Failed to add restaurant');
+    throw new Error(error.value.message);
   }
 
   if (responseData.value.success) {

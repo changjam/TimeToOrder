@@ -2,11 +2,21 @@
   import { ref } from 'vue';
   import { getRestaurant } from '@/utils/restaurants/restaurantHandler';
   import { getGroupData } from '@/utils/groups/groupHandler';
-  import { useCookie } from '#app';
+  import { verify_credential } from '@/utils/auth/verifyHandler'
   import { getUserData } from '@/utils/users/userHandler'
   import { addOrder } from '@/utils/order/orderHandler';
 
-  const user_id = useCookie('user_id').value;
+  const user_id = ref('')
+
+  async function getUserInfo() {
+    const data = await verify_credential()
+    if (!data) {
+      router.push('/login')
+    } else {
+      return data.user_id
+    }
+  }
+  user_id.value = await getUserInfo()
 
   const restaurants = ref([]);
   const selectedRestaurantId = ref(null);
@@ -24,7 +34,7 @@
       const data = await getRestaurant();
       restaurants.value = data;
 
-      const user_info = await getUserData(`_id=${user_id}`);
+      const user_info = await getUserData(`user_id=${user_id.value}`);
       const joinedGroups = user_info.data.joinedGroups;
 
       for (const group of joinedGroups) {
@@ -65,7 +75,7 @@
 
     const orderData = {
       order_name: orderName.value,
-      creator_id: user_id,
+      creator_id: user_id.value,
       restaurant_id: selectedRestaurantId.value,
       group_id: selectedGroupId.value,
       notes: notes.value,

@@ -1,24 +1,38 @@
 <script setup>
-import { useCookie } from '#app'
 import { getUserData } from '@/utils/users/userHandler'
 import { getOrders } from '@/utils/order/orderHandler'
 import { getMenus } from '@/utils/menus/menuHandler';
+import { verify_credential } from '@/utils/auth/verifyHandler'
 
 const order = ref([])
-const creator = ref(null)
-const priceRange = ref(null)
+const user_id = ref('')
+
+async function getUserInfo() {
+  const data = await verify_credential()
+  if (!data) {
+    router.push('/login')
+  } else {
+    return data.user_id
+  }
+}
+user_id.value = await getUserInfo()
 
 onMounted(async() => {
-    const user_id = useCookie('user_id').value;
-    const user_info = await getUserData(`_id=${user_id}`);
+    const data = await verify_credential()
+    user_id.value = data.user_id
+    const user_info = await getUserData(`user_id=${user_id.value}`);
     const joinedGroups = user_info.data.joinedGroups;
 
     /////////////////// info 是可以給前端用的資訊
     for (const group of joinedGroups){
         const info = await getOrders(group);
-        if (info.data[0]){
-            order.value.push(info.data[0])
-        }
+        for (const data of info.data){
+            Object.assign(data, {creator: await getCreatorName(data.creator_id)})
+            Object.assign(data, {priceRange: await getPriceRange(data.restaurant_id._id)})
+            if (data){
+                order.value.push(data)
+            } 
+        }    
     }
 })
 
@@ -32,9 +46,8 @@ function timeFormating(time) {
 
 
 async function getCreatorName(id){
-    const user_info = await getUserData(`_id=${id}`);
-    creator.value = user_info.data.name
-    return creator.value
+    const user_info = await getUserData(`user_id=${id}`);
+    return user_info.data.name
 }
 
 
@@ -48,7 +61,12 @@ const getPriceRange = async (restaurantId) => {
         if (price < minPrice) minPrice = price;
         if (price > maxPrice) maxPrice = price;
     }
-    priceRange.value = `$${minPrice}~$${maxPrice}`
+
+    if (minPrice === Infinity && maxPrice === -Infinity){
+        return '未知'
+    }else{
+        return `$${minPrice}~$${maxPrice}`
+    }
     } catch(error){
         console.log(error)
     }
@@ -62,10 +80,10 @@ const getPriceRange = async (restaurantId) => {
             <div class="order-container" v-for="item in order" :key="item._id" @click="$router.push(`restaurants/${item.restaurant_id._id}`)">
                 <section class="main">
                     <h1>{{ item.order_name }}</h1>
-                    <span class="master" v-if="getCreatorName(item.creator_id)">創建人:{{ creator }}</span>
+                    <span class="master">創建人:{{ item.creator }}</span>
                 </section>
                 <section class="info">
-                    <span v-if="getPriceRange(item.restaurant_id._id)">價格: {{ priceRange }}</span>
+                    <span>價格: {{ item.priceRange }}</span>
                     <span>截止時間: {{ timeFormating(item.order_lock_time) }}</span>
                 </section>
             </div>

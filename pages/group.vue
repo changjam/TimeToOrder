@@ -1,20 +1,31 @@
 <script setup>
 import { ref } from 'vue'
-import { useCookie } from '#app'
 import { getUserData , updateUserGroup } from '@/utils/users/userHandler'
 import { addGroup , getGroupData } from '@/utils/groups/groupHandler'
+import { verify_credential } from '@/utils/auth/verifyHandler'
 
-const user_id = useCookie('user_id')
 const groupName = ref('')
 const emails = ref([''])
 const groupDataList = ref([])
 const showCreateGroupForm = ref(false)
+const user_id = ref('')
+
+async function getUserInfo() {
+  const data = await verify_credential()
+  if (!data) {
+    router.push('/login')
+  } else {
+    return data.user_id
+  }
+}
+user_id.value = await getUserInfo()
 
 const addEmail = () => {
   emails.value.push('')
 }
 
-const user_info = await getUserData(`_id=${user_id.value}`)
+const user_info = await getUserData(`user_id=${user_id.value}`)
+console.log(user_info)
 const joinedGroups = user_info.data.joinedGroups
 
 for (const group of joinedGroups) {
@@ -35,9 +46,9 @@ const createGroup = async () => {
   
   for (const email of emails.value) {
     const user_info = await getUserData(`email=${email}`)
-    if (user_info && user_info.data._id !== user_id.value) {
+    if (user_info && user_info.data.user_id !== user_id.value) {
       members.push({
-        id: user_info.data._id,
+        id: user_info.data.user_id,
         permission_level: 'member'
       })
     }

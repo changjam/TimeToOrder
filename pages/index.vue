@@ -37,26 +37,12 @@
 import { onMounted } from 'vue'
 import { verify_credential } from '@/utils/auth/verifyHandler'
 import { logout } from '@/utils/auth/logoutHandler'
-import { getUserData } from '@/utils/users/userHandler'
-import { useCookie } from '#app'
 
 const router = useRouter();
 const userInfo = reactive({ name: '' })
 
 onMounted(async () => {
 	const data = await verify_credential()
-	try{
-		const user_info = await getUserData(`user_id=${data.user_id}`)
-		const user_id_cookie = useCookie('user_id')
-		user_id_cookie.value = user_info.data._id
-		user_id_cookie.option = {
-			maxAge: 24*60*60,
-			path: '/',
-		}	
-	}catch(error){
-		console.log("Does not Login")
-	}
-	
 
 	if (!data)
 		router.push('/login')
