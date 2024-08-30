@@ -56,7 +56,6 @@ user_id.value = await getUserInfo()
 if (user_id.value) {
   const response = await getUserData(`user_id=${user_id.value}`)
   user_info.value = response.data
-  console.log(user_info.value.name)
 }
 
 </script>

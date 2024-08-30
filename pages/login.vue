@@ -19,10 +19,12 @@ import { onMounted } from 'vue'
 import { useFetch } from '#app';
 import { addUserSession } from '@/utils/user_session/userSessionHandler'
 import { verify_credential } from '@/utils/auth/verifyHandler'
+import { getUserData } from '@/utils/users/userHandler'
 
 const router = useRouter();
 const login_button = ref()
 const login_google = ref()
+const user_data = ref()
 
 
 import { googleTokenLogin } from 'vue3-google-login'
@@ -40,11 +42,21 @@ const handleGoogleAccessTokenLogin = async () => {
   })
   const user_info = data.value.jwtTokenPayload
   if (!user_info) return;
-  login_button.value.classList.add("login-animate")
-  console.log(user_info.image)
-  login_google.value.classList.add("round-border")
-  login_google.value.src = user_info.image
+  const response = await getUserData(`user_id=${user_info.user_id}`)
 
+  user_data.value = response.data
+  
+  if (user_data.value.customImage){
+    login_button.value.classList.add("login-animate")
+    login_google.value.classList.add("round-border")
+    login_google.value.src = user_data.value.customImage
+  }
+  else if (user_data.value.image){
+    login_button.value.classList.add("login-animate")
+    login_google.value.classList.add("round-border")
+    login_google.value.src = user_data.value.image
+  }
+  
   // Wait for 2 seconds before proceeding
   await new Promise(resolve => setTimeout(resolve, 2000));
 
