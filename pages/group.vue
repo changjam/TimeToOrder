@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue'
-import { getUserData , updateUserGroup } from '@/utils/users/userHandler'
+import { getUserData , updateUser } from '@/utils/users/userHandler'
 import { addGroup , getGroupData } from '@/utils/groups/groupHandler'
 import { verify_credential } from '@/utils/auth/verifyHandler'
 
@@ -64,7 +64,7 @@ const createGroup = async () => {
   try {
     const addedGroup = await addGroup(groupData)
     for (const member of groupData.members) {
-      await updateUserGroup(member.id, addedGroup._id)
+      await updateUser(member.id, { joinedGroups: addedGroup._id });
     }
   
     groupName.value = ''

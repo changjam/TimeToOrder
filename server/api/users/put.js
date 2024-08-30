@@ -1,15 +1,23 @@
 import User from '@/server/models/Users';
-import { parse } from 'url';
 
 export default defineEventHandler(async (event) => {
-  const { query } = parse(event.node.req.url, true);
-  
-  const { user_id, group } = query;
-
   try {
+    const body = await readBody(event);
+    const { user_id, joinedGroups, ...otherFields } = body;
+
+    const updateFields = {};
+
+    if (joinedGroups) {
+      updateFields.$addToSet = { joinedGroups };
+    }
+
+    if (Object.keys(otherFields).length > 0) {
+      updateFields.$set = { ...otherFields };
+    }
+
     const user = await User.findOneAndUpdate(
       { user_id },
-      { $addToSet: { joinedGroups: group } }, 
+      updateFields,
       { new: true }
     );
 
@@ -18,3 +26,6 @@ export default defineEventHandler(async (event) => {
     return { success: false, message: 'Failed to update user', error };
   }
 });
+
+
+

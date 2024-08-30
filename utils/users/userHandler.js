@@ -10,16 +10,17 @@ export async function getUserData(data) {
     }
 }
 
-
-export async function updateUserGroup(id, group) {
-    try {
-      const response = await $fetch(`/api/users/put?user_id=${id}&group=${group}`, {
-        method: 'PUT',
-      });
-      return response;
-  
-    } catch (error) {
-      throw new Error('Failed to update User Group');
-    }
+export async function updateUser(id, updateFields) {
+  try {
+    const response = await $fetch(`/api/users/put`, {
+      method: 'PUT',
+      body: {
+        user_id: id,
+        ...updateFields,
+      },
+    });
+    return response;
+  } catch (error) {
+    throw new Error('Failed to update User');
   }
-  
+}

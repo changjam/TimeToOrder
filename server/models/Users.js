@@ -6,7 +6,9 @@ const UserSchema = new mongoose.Schema({
     email: { type: String, required: true },
     image: { type: String, required: true },
     createdAt: { type: Date, default: Date.now, require: true},
-    joinedGroups: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Groups' }]
+    joinedGroups: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Groups' }],
+    nickname: String,
+    customImage: String
 });
 
 export default mongoose.model('Users', UserSchema);
