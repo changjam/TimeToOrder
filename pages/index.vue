@@ -1,8 +1,8 @@
 <template>
-	<div class="index-wrapper" v-if="userInfo.name">
+	<div class="index-wrapper" v-if="user_info.name">
 		<div class="user-info-wrapper">
-			<img id="user-avatar" :src="userInfo.image" alt="">
-			<h1>{{ userInfo.name }} 你可以</h1>
+			<img id="user-avatar" :src="user_info.customImage || user_info.image"  alt="">
+			<h1>{{ user_info.nickname || user_info.name }} 你可以</h1>
 		</div>
 
 		<nav class="features">
@@ -34,20 +34,31 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
 import { verify_credential } from '@/utils/auth/verifyHandler'
 import { logout } from '@/utils/auth/logoutHandler'
+import { getUserData } from '@/utils/users/userHandler'
 
 const router = useRouter();
-const userInfo = reactive({ name: '' })
+const user_info = ref(null)
+const user_id = ref('')
 
-onMounted(async () => {
-	const data = await verify_credential()
+async function getUserInfo() {
+  const data = await verify_credential()
+  if (!data) {
+    router.push('/login')
+  } else {
+    return data.user_id
+  }
+}
 
-	if (!data)
-		router.push('/login')
-	Object.assign(userInfo, data)
-})
+user_id.value = await getUserInfo()
+
+if (user_id.value) {
+  const response = await getUserData(`user_id=${user_id.value}`)
+  user_info.value = response.data
+  console.log(user_info.value.name)
+}
+
 </script>
 
 <style>
