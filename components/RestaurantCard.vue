@@ -4,7 +4,7 @@
 </script>
 
 <template>
-    <div id="restaurantCard" @click="router.push({path:'/restaurants'})">
+    <div id="restaurantCard" @click="router.push({path:'/restaurant'})">
         <h1>查看餐廳</h1>
         <img src="~/assets/images/restaurant.svg" alt="">
     </div>

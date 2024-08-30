@@ -8,9 +8,6 @@ const router = useRouter()
 
             <img src="~/assets/images/logo.png" alt="Logo" id="logo" />
         </div>
-        <nav class='navbar'>
-
-        </nav>
     </header>
 </template>
 

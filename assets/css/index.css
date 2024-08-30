@@ -11,6 +11,7 @@
   --dark-blue: #122752;
   --light-blue: #a1c2ed;
   --light-gray: #f4f4f4;
+  --rice:rgb(240, 238, 235);
 
   --header-height: 150px;
 
@@ -62,8 +63,8 @@ html {
 }
 
 body {
-  /* background-image: url('/background.png'); */
-  background-color: var(--light-gray);
+  background-image: url('/background.svg');
+  /* background-color: rgb(240, 238, 235); */
   background-size: 400px 400px;
   background-repeat: repeat;
 
