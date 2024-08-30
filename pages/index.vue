@@ -130,5 +130,6 @@ if (user_id.value) {
 	border-radius: 50%;
 	margin-right: 10px;
 	height: 5rem;
+	width: 5rem;
 }
 </style>
