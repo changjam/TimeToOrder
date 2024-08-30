@@ -30,8 +30,9 @@ if (user_id.value) {
 function handleImageUpload(event) {
   const file = event.target.files[0]
   const reader = new FileReader()
-  reader.onload = () => {
+  reader.onload = async () => {
     newCustomImage.value = reader.result
+    await updateUserInfo()
   }
   reader.readAsDataURL(file)
 }
@@ -92,6 +93,7 @@ function editNickname() {
     </div>
   </div>
 </template>
+
 
 <style scoped>
 .profile-container {
