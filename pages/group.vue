@@ -5,51 +5,66 @@ import { addGroup , getGroupData } from '@/utils/groups/groupHandler'
 import { verify_credential } from '@/utils/auth/verifyHandler'
 
 const groupName = ref('')
-const emails = ref([''])
+const emails = ref([])
 const groupDataList = ref([])
+const user_info = ref(null)
 const showCreateGroupForm = ref(false)
 const user_id = ref('')
 
-async function getUserInfo() {
+onMounted(async () => {
   const data = await verify_credential()
-  if (!data) {
-    router.push('/login')
-  } else {
-    return data.user_id
+  if (!data) 
+    router.push('/login');
+
+  user_id.value = data.user_id;
+  const response = await getUserData(`user_id=${user_id.value}`);
+  user_info.value = response.data;
+  emails.value.push(user_info.value.email)
+  const joinedGroups = user_info.value.joinedGroups
+  showCreateGroupForm.value = joinedGroups.length === 0
+  if (joinedGroups.length == 0)
+    return;
+
+  // setting group data
+  for (const group of joinedGroups) {
+    const groupData = await getGroupData(`_id=${group}`)
+    const user_response = await getUserData(`user_id=${groupData.data[0].creator}`);
+    const creator_name = user_response.data.nickName || user_response.data.name
+    groupDataList.value.push({...groupData.data[0], creator_name: creator_name})
   }
-}
-user_id.value = await getUserInfo()
+})
 
 const addEmail = () => {
+  if (new Set(emails.value).size !== emails.value.length)
+    return alert('幹什麼！ 你哪一連的？ 不要輸入同樣的 email 聽不懂是不是拉？');
   emails.value.push('')
 }
-
-const user_info = await getUserData(`user_id=${user_id.value}`)
-console.log(user_info)
-const joinedGroups = user_info.data.joinedGroups
-
-for (const group of joinedGroups) {
-  const groupdata = await getGroupData(`_id=${group}`)
-  groupDataList.value.push(groupdata.data)
+const removeEmail = () => {
+  if (emails.value.length <= 1)
+    return;
+  emails.value.pop();
 }
 
-// console.log("groupDataList.value:::",groupDataList.value[0][0])
-
-showCreateGroupForm.value = groupDataList.value.length === 0
-
 const createGroup = async () => {
+  if (groupName.value === '')
+    return alert('群組名稱不能為空');
+
   const members = []
-  
   members.push({
     id: user_id.value,
     permission_level: 'admin'
   })
   
+  emails.value = [...new Set(emails.value)]
   for (const email of emails.value) {
-    const user_info = await getUserData(`email=${email}`)
-    if (user_info && user_info.data.user_id !== user_id.value) {
+    if (!email){
+      alert('成員 email 不得為空')
+      return;
+    }
+    const user = await getUserData(`email=${email}`)
+    if (user && user.data.user_id !== user_id.value) {
       members.push({
-        id: user_info.data.user_id,
+        id: user.data.user_id,
         permission_level: 'member'
       })
     }
@@ -72,51 +87,68 @@ const createGroup = async () => {
     alert("新增群組成功")
     showCreateGroupForm.value = false
     groupDataList.value.push(addedGroup)
+    location.reload()
   } catch (error) {
+    console.error('error: ', error)
     alert("新增群組失敗")
   }
 }
 </script>
 
 <template>
-  <div class="group-container">
-    <h1>群組管理</h1>
-
-    <div v-if="showCreateGroupForm">
-      <div class="form-group">
-        <label for="groupName">群組名稱:</label>
-        <input v-model="groupName" id="groupName" type="text" placeholder="輸入群組名稱" class="input-field" />
-      </div>
-
-      <div v-for="(email, index) in emails" :key="index" class="form-group">
-        <label :for="'email' + index">成員信箱 {{ index + 1 }}:</label>
-        <input v-model="emails[index]" :id="'email' + index" type="email" placeholder="輸入成員信箱" class="input-field" />
-      </div>
-
-      <button @click="addEmail" class="add-button">新增其他成員</button>
-      <button @click="createGroup" class="submit-button">送出</button>
-      <button @click="showCreateGroupForm = false" class="cancel-button">取消</button>
-    </div>
-
-
-    <div v-else>
-      <div class="group-list">
-        <h2>已加入群組</h2>
-        <div v-for="group in groupDataList" :key="group[0]._id" class="group-item">
-          <h3>{{ group[0].name }}</h3>
-          <p>創建時間: {{ new Date(group[0].created_at).toLocaleString() }}</p>
+  <div class="group-container-wrapper">
+    <div class="group-container">
+      <div v-if="showCreateGroupForm">
+        <h2 class="tab-title">新增群組</h2>
+        <div class="form-group">
+          <label for="groupName">群組名稱:</label>
+          <input v-model="groupName" id="groupName" type="text" placeholder="雄壯威武火力連" class="input-field" />
         </div>
+
+        <div v-for="(email, index) in emails" :key="index" class="form-group">
+          <label v-if="index == 0" :for="'email' + index">admin</label>
+          <label v-else :for="'email' + index">member {{ index }}:</label>
+          
+          <input v-if="index == 0" :id="'email' + index" type="email" :value="email" class="input-field" disabled/>
+          <input v-else v-model="emails[index]" :id="'email' + index" type="email" placeholder="輸入成員信箱" class="input-field" />
+        </div>
+
+        <div class="horizontal-container">
+          <button @click="addEmail" class="add-button button-style">新增成員</button>
+          <button @click="removeEmail" class="remove-button button-style">刪除成員</button>
+        </div>
+        <button @click="createGroup" class="submit-button button-style">送出</button>
+        <button @click="showCreateGroupForm = false" class="remove-button button-style">取消</button>
       </div>
 
-      <button @click="showCreateGroupForm = true" class="add-button">新增群組</button>
+
+      <div v-else>
+        <div class="group-list">
+          <h2 class="tab-title">群組列表</h2>
+          <div v-for="(group, idx) in groupDataList" :key="idx" class="group-item">
+            <h3>{{ group.name }}</h3>
+            <p>創建人: {{ group.creator_name }}</p>
+            <p>創建時間: {{ new Date(group.created_at).toLocaleString() }}</p>
+          </div>
+        </div>
+        <button @click="showCreateGroupForm = true" class="add-button button-style">新增群組</button>
+      </div>
     </div>
   </div>
 </template>
 
 
 <style scoped>
+  .group-container-wrapper{
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center
+  }
+
   .group-container {
     max-width: 500px;
+    width: 100%;
     margin: 0 auto;
     padding: 20px;
     background-color: #f9f9f9;
@@ -124,11 +156,14 @@ const createGroup = async () => {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   }
 
-  h1 {
-    text-align: center;
-    margin-bottom: 20px;
-    font-size: 24px;
-    color: #333;
+  .group-container .horizontal-container{
+    display: flex;
+    justify-content: space-between;
+    gap: 6px;
+  }
+
+  .tab-title{
+    padding-bottom: 20px;
   }
 
   .form-group {
@@ -151,49 +186,23 @@ const createGroup = async () => {
     box-sizing: border-box;
   }
 
-  .add-button, .submit-button {
+  .button-style {
     width: 100%;
     padding: 10px;
     font-size: 16px;
     color: #fff;
-    background-color: #007bff;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     margin-top: 10px;
   }
 
-  .add-button {
-    background-color: #28a745;
-  }
-
-  .add-button:hover, .submit-button:hover {
-    background-color: #0056b3;
-  }
-
-  .submit-button:hover {
-    background-color: #218838;
-  }
-
-  .cancel-button {
-    width: 100%;
-    padding: 10px;
-    font-size: 16px;
-    color: #fff;
-    background-color: #dc3545;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-top: 10px;
-  }
-
-  .cancel-button:hover {
-    background-color: #c82333;
-  }
-
-  .group-list {
-    margin-top: 30px;
-  }
+  .add-button {background-color: #28a745;}
+  .add-button:hover {background-color: #218838;}
+  .remove-button {background-color: #dc3545;}
+  .remove-button:hover {background-color: #c82333;}
+  .submit-button {background-color: #007bff;}
+  .submit-button:hover {background-color: #0056b3;}
 
   .group-item {
     background-color: #e9ecef;
