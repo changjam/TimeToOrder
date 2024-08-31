@@ -39,15 +39,15 @@ function handleImageUpload(event) {
 
 async function updateUserInfo() {
   const updates = {}
-  if (newNickname.value.length > 15) {
-    alert('暱稱不能超過15個字元')
-    newNickname.value = user_info.value.nickname
-    return
-  } else if (newNickname.value.length <= 0) {
-    alert('暱稱不能為空')
-    newNickname.value = user_info.value.nickname
-    return
-  }
+  // if (newNickname.value.length > 15) {
+  //   alert('暱稱不能超過15個字元')
+  //   newNickname.value = user_info.value.nickname
+  //   return
+  // } else if (newNickname.value.length <= 0) {
+  //   alert('暱稱不能為空')
+  //   newNickname.value = user_info.value.nickname
+  //   return
+  // }
   if (newNickname.value) updates.nickname = newNickname.value
   if (newCustomImage.value) updates.customImage = newCustomImage.value
 

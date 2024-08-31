@@ -21,8 +21,8 @@
 				<div>
 					<p>歷史訂單</p>
 				</div>
-				<div>
-					<p @click="router.push({path:'profile'})">個人設定</p>
+				<div @click="router.push({path:'profile'})">
+					<p>個人設定</p>
 				</div>
 				<div @click="logout">
 					<p>登出</p>

@@ -46,17 +46,21 @@ const handleGoogleAccessTokenLogin = async () => {
 
   user_data.value = response.data
   
-  if (user_data.value.customImage){
-    login_button.value.classList.add("login-animate")
-    login_google.value.classList.add("round-border")
-    login_google.value.src = user_data.value.customImage
-  }
-  else if (user_data.value.image){
-    login_button.value.classList.add("login-animate")
-    login_google.value.classList.add("round-border")
-    login_google.value.src = user_data.value.image
-  }
+  // if (user_data.value.customImage){
+  //   login_button.value.classList.add("login-animate")
+  //   login_google.value.classList.add("round-border")
+  //   login_google.value.src = user_data.value.customImage
+  // }
+  // if (user_data.value.image){
+  //   login_button.value.classList.add("login-animate")
+  //   login_google.value.classList.add("round-border")
+  //   login_google.value.src = user_data.value.image
+  // }
   
+  login_button.value.classList.add("login-animate")
+  login_google.value.classList.add("round-border")
+  // login_google.value.src = user_data.value.image
+
   // Wait for 2 seconds before proceeding
   await new Promise(resolve => setTimeout(resolve, 2000));
 
