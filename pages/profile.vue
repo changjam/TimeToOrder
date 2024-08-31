@@ -37,22 +37,6 @@ onMounted(async () => {
   origin_status.image_b64 = image_b64.value;
 })
 
-function handle_time_format(isoString) {
-  const date = new Date(isoString);
-
-  const formattedDate = date.toLocaleString(undefined, {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false,
-    timeZoneName: 'short'
-  });
-  return formattedDate;
-}
-
 function handleImageUpload(event) {
   const file = event.target.files[0]
   const reader = new FileReader()
@@ -113,7 +97,7 @@ async function updateUserInfo() {
         </div>
         <div class="profile-field">
           <h3 class="key">加入時間：</h3>
-          <div class="value">{{ handle_time_format(user_info.createdAt) }}</div>
+          <div class="value">{{ new Date(user_info.createdAt).toLocaleString() }}</div>
         </div>
         <div class="profile-field">
           <h3 class="key">暱稱：</h3>
