@@ -7,61 +7,85 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 const user_id = ref('')
 const user_info = ref(null)
-const newNickname = ref('')
-const newCustomImage = ref('')
-const editingNickname = ref(false)
+const nickName = ref('')
+const image_b64 = ref('')
+const origin_status = reactive({'nickName': nickName.value, 'image_b64': image_b64.value})
 
-async function getUserInfo() {
-  const data = await verify_credential()
-  if (!data) {
-    router.push('/login')
-  } else {
-    return data.user_id
+const isChanged = computed(() => {
+  if (origin_status.nickName !== nickName.value || origin_status.image_b64 !== image_b64.value){
+    return true;
+  }else{
+    return false;
   }
-}
+});
 
-user_id.value = await getUserInfo()
+onMounted(async () => {
+  const data = await verify_credential()
+  if (!data) 
+    router.push('/login');
+  user_id.value = data.user_id;
 
-if (user_id.value) {
-  const response = await getUserData(`user_id=${user_id.value}`)
-  user_info.value = response.data
+  if (!user_id.value)
+    return;
+  const response = await getUserData(`user_id=${user_id.value}`);
+  user_info.value = response.data;
+
+  nickName.value = user_info.value.nickName || '尚未設置暱稱';
+  origin_status.nickName = nickName.value;
+
+  image_b64.value = user_info.value.customImage || user_info.value.image;
+  origin_status.image_b64 = image_b64.value;
+})
+
+function handle_time_format(isoString) {
+  const date = new Date(isoString);
+
+  const formattedDate = date.toLocaleString(undefined, {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+    timeZoneName: 'short'
+  });
+  return formattedDate;
 }
 
 function handleImageUpload(event) {
   const file = event.target.files[0]
   const reader = new FileReader()
-  reader.onload = async () => {
-    newCustomImage.value = reader.result
-    await updateUserInfo()
-  }
+  reader.onload = async () => {image_b64.value = reader.result}
   reader.readAsDataURL(file)
+}
+
+function check_nickName_format() {
+  if (nickName.value.length > 15) {
+    alert('暱稱不能超過15個字元')
+    return false;
+  } else if (nickName.value.length <= 0) {
+    alert('暱稱不能為空')
+    return false;
+  }
+  return true;
 }
 
 async function updateUserInfo() {
   const updates = {}
-  if (newNickname.value.length > 15) {
-    alert('暱稱不能超過15個字元')
-    newNickname.value = user_info.value.nickname
-    return
-  } else if (newNickname.value.length <= 0) {
-    alert('暱稱不能為空')
-    newNickname.value = user_info.value.nickname
-    return
+  console.log
+  if (nickName.value !== origin_status.nickName) {
+    if (check_nickName_format())
+      updates.nickName = nickName.value
+    else
+      location.reload()
   }
-  if (newNickname.value) updates.nickname = newNickname.value
-  if (newCustomImage.value) updates.customImage = newCustomImage.value
+  if (image_b64.value && image_b64.value !== origin_status.image_b64) updates.customImage = image_b64.value
 
-  if (Object.keys(updates).length) {
-    await updateUser(user_id.value, updates)
-    const response = await getUserData(`user_id=${user_id.value}`)
-    user_info.value = response.data
-    editingNickname.value = false
-  }
-}
+  if (Object.keys(updates).length)
+    await updateUser(user_id.value, updates);
 
-function editNickname() {
-  editingNickname.value = true
-  newNickname.value = user_info.value.nickname
+  location.reload();
 }
 </script>
 
@@ -70,7 +94,7 @@ function editNickname() {
     <h1 class="title">個人資料頁面</h1>
     <div v-if="user_info" class="profile-card">
       <div class="image-container">
-        <img :src="newCustomImage || user_info.customImage || user_info.image" alt="User Image" class="profile-image" />
+        <img :src="image_b64" alt="User Image" class="profile-image" />
         <div class="overlay">
           <label class="change-image-text">
             更改圖片
@@ -79,16 +103,25 @@ function editNickname() {
         </div>
       </div>
       <div class="profile-info">
-        <p><strong>姓名：</strong>{{ user_info.name }}</p>
-        <p><strong>電子郵件：</strong>{{ user_info.email }}</p>
-        <p>
-          <strong>暱稱：</strong>
-          <button @click="editingNickname ? updateUserInfo() : editNickname()">
-            {{ editingNickname ? '變更' : '更改暱稱' }}
-          </button>
-          <span v-if="!editingNickname">{{ user_info.nickname || '尚未設置暱稱' }}</span>
-          <input v-else v-model="newNickname" type="text" placeholder="輸入新暱稱" />
-        </p>
+        <div class="profile-field">
+          <h3 class="key">姓名：</h3>
+          <div class="value">{{ user_info.name }}</div>
+        </div>
+        <div class="profile-field">
+          <h3 class="key">電子郵件：</h3>
+          <div class="value">{{ user_info.email }}</div>
+        </div>
+        <div class="profile-field">
+          <h3 class="key">加入時間：</h3>
+          <div class="value">{{ handle_time_format(user_info.createdAt) }}</div>
+        </div>
+        <div class="profile-field">
+          <h3 class="key">暱稱：</h3>
+          <input class="value nickName-input" v-model="nickName" maxlength="15"></input>
+        </div>
+      </div>
+      <div class="save-button-container" v-if="isChanged">
+        <button class="save_button" @click="updateUserInfo">儲存狀態</button>
       </div>
     </div>
   </div>
@@ -97,12 +130,11 @@ function editNickname() {
 
 <style scoped>
 .profile-container {
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 20px;
-  background-color: #f0f4f8;
-  min-height: 100vh;
 }
 
 .title {
@@ -139,11 +171,9 @@ function editNickname() {
   object-fit: cover;
   transition: transform 0.3s ease;
 }
-
 .image-container:hover .profile-image {
   transform: scale(1.1);
 }
-
 .overlay {
   position: absolute;
   top: 0;
@@ -163,57 +193,67 @@ function editNickname() {
 .image-container:hover .overlay {
   opacity: 1;
 }
-
 .change-image-text {
   cursor: pointer;
-  font-size: 1em;
+  font-size: 1.5em;
   font-weight: bold;
 }
-
 .change-image-text input[type="file"] {
   display: none;
 }
 
 .profile-info {
+  width: 100%;
+  height: 100%;
   margin-bottom: 20px;
   font-size: 1.1em;
   color: #555;
 }
-
-.profile-info p {
+.profile-info .profile-field {
+  width: 100%;
+  height: 50px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 10px 0;
 }
-
-.profile-info strong {
+.profile-field .key{
+  text-align:left;
+  font-weight: 900;
   color: #333;
 }
-
+.profile-field .value{
+  text-align: right;
+  color: #555;
+}
 .profile-info input {
+  border: none;
   margin-left: 10px;
   padding: 8px;
-  border: 1px solid #ccc;
   border-radius: 5px;
   flex-grow: 1;
   font-size: 1em;
 }
-
-.profile-info button {
-  margin-left: 10px;
-  padding: 8px 15px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.3s ease;
-  font-size: 1em;
+.profile-info input:hover {
+  background-color: #ccc
 }
 
-.profile-info button:hover {
+
+
+.profile-card .save-button-container{
+  width: 100%;
+}
+.profile-card .save_button{
+  width: 100%;
+  line-height: 40px;
+  font-size: 20px;
+  font-weight: 500;
+  border-radius: 5px;
+  color: white;
+  background-color: #007bff;
+}
+.profile-card .save_button:hover{
   background-color: #0056b3;
-  transform: scale(1.05);
+  cursor: pointer;
+  transition: all 0.2s;
 }
 </style>

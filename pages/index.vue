@@ -1,8 +1,8 @@
 <template>
-	<div class="index-wrapper" v-if="user_info.name">
+	<div class="index-wrapper" v-if="user_info">
 		<div class="user-info-wrapper">
 			<img id="user-avatar" :src="user_info.customImage || user_info.image"  alt="">
-			<h1>{{ user_info.nickname || user_info.name }} 你可以</h1>
+			<h1> 歡迎 <span class="name">{{ user_info.nickName || user_info.name }}</span> 上餐廳，親愛精誠</h1>
 		</div>
 
 		<nav class="features">
@@ -21,8 +21,8 @@
 				<div>
 					<p>歷史訂單</p>
 				</div>
-				<div>
-					<p @click="router.push({path:'profile'})">個人設定</p>
+				<div @click="router.push({path:'profile'})">
+					<p>個人設定</p>
 				</div>
 				<div @click="logout">
 					<p>登出</p>
@@ -42,22 +42,17 @@ const router = useRouter();
 const user_info = ref(null)
 const user_id = ref('')
 
-async function getUserInfo() {
+onMounted(async () => {
   const data = await verify_credential()
-  if (!data) {
-    router.push('/login')
-  } else {
-    return data.user_id
-  }
-}
+  if (!data) 
+    router.push('/login');
+  user_id.value = data.user_id;
 
-user_id.value = await getUserInfo()
-
-if (user_id.value) {
-  const response = await getUserData(`user_id=${user_id.value}`)
-  user_info.value = response.data
-}
-
+  if (!user_id.value)
+    return;
+  const response = await getUserData(`user_id=${user_id.value}`);
+  user_info.value = response.data;
+})
 </script>
 
 <style>
@@ -125,10 +120,15 @@ if (user_id.value) {
 	justify-content: center;
 }
 
+.user-info-wrapper .name {
+	font-size: 30px;
+}
+
 #user-avatar {
 	border-radius: 50%;
 	margin-right: 10px;
 	height: 5rem;
 	width: 5rem;
+	object-fit: cover;
 }
 </style>

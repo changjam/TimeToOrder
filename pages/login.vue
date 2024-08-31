@@ -1,7 +1,5 @@
 <template>
-
   <div class="login-wrapper">
-
     <ClientOnly>
       <button ref="login_button" class="google-login" @click="handleGoogleAccessTokenLogin">
         <img src="~/assets/images/plate_white.svg" alt="" id="plate">
@@ -11,7 +9,6 @@
     </ClientOnly>
     <h2>快登入，別餓著自己！</h2>
   </div>
-
 </template>
 
 <script setup>
@@ -19,22 +16,26 @@ import { onMounted } from 'vue'
 import { useFetch } from '#app';
 import { addUserSession } from '@/utils/user_session/userSessionHandler'
 import { verify_credential } from '@/utils/auth/verifyHandler'
+import { googleTokenLogin } from 'vue3-google-login'
 import { getUserData } from '@/utils/users/userHandler'
+
 
 const router = useRouter();
 const login_button = ref()
 const login_google = ref()
-const user_data = ref()
 
 
-import { googleTokenLogin } from 'vue3-google-login'
+onMounted(async () => {
+  const data = await verify_credential()
+  if (!data) return;
+  router.push('/');
+})
+
 
 const handleGoogleAccessTokenLogin = async () => {
   const { access_token } = await googleTokenLogin({ clientId: process.env.GOOGLE_CLIENT_ID });
 
-  if (!access_token) {
-    return
-  }
+  if (!access_token) return;
 
   const { data } = await useFetch('/api/auth/google-auth-token', {
     method: 'POST',
@@ -42,57 +43,48 @@ const handleGoogleAccessTokenLogin = async () => {
   })
   const user_info = data.value.jwtTokenPayload
   if (!user_info) return;
-  const response = await getUserData(`user_id=${user_info.user_id}`)
+  const user_response = await getUserData(`user_id=${user_info.user_id}`)
 
-  user_data.value = response.data
-  
-  if (user_data.value.customImage){
-    login_button.value.classList.add("login-animate")
-    login_google.value.classList.add("round-border")
-    login_google.value.src = user_data.value.customImage
-  }
-  else if (user_data.value.image){
-    login_button.value.classList.add("login-animate")
-    login_google.value.classList.add("round-border")
-    login_google.value.src = user_data.value.image
-  }
-  
-  // Wait for 2 seconds before proceeding
-  await new Promise(resolve => setTimeout(resolve, 2000));
-
-  // add user login session
-  addUserSession({
-    'user_id': user_info.user_id,
-    'name': user_info.name,
-    'email': user_info.email,
-    'actions': "Login"
-  })
-
-  // register
-  try {
-    await useFetch('/api/users/post', {
-      method: 'POST',
-      body: user_info,
-    });
-  } catch (error) {
-    console.log("Already registered or Other Error")
-  }
+  await save_to_DB(user_info, user_response);
+  await login_animation(user_info, user_response);
   router.push('/');
 }
 
-onMounted(async () => {
-  const data = await verify_credential()
-  const user_info = await getUserData(`user_id=${data.user_id}`)
-  const user_id_cookie = useCookie('user_id')
-  user_id_cookie.value = user_info.data._id
-  user_id_cookie.option = {
-    maxAge: 24 * 60 * 60,
-    path: '/',
-  }
-  if (!data) return;
-  router.push('/');
-})
+async function login_animation(user_info, user_response){
+  return new Promise((resolve, reject) => {
+    login_button.value.classList.add("login-animate");
+    login_google.value.classList.add("round-border");
+    
+    let login_image = user_info.image
+    if (user_response.data)
+      login_image = user_response.data.customImage || user_response.data.image
+    login_google.value.src = login_image
+    // Wait for 2 seconds before proceeding
+    setTimeout(resolve, 2000);
+  })
+}
 
+async function save_to_DB(user_info, user_response){
+  try {
+    // add user login session
+    addUserSession({
+      'user_id': user_info.user_id,
+      'name': user_info.name,
+      'email': user_info.email,
+      'actions': "Login"
+    });
+
+    // register
+    if (!user_response.data){
+      await useFetch('/api/users/post', {
+        method: 'POST',
+        body: user_info,
+      });
+    }
+  } catch (error) {
+    console.error("Login Error:", error);
+  }
+}
 </script>
 
 <style>

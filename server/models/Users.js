@@ -7,7 +7,7 @@ const UserSchema = new mongoose.Schema({
     image: { type: String, required: true },
     createdAt: { type: Date, default: Date.now, require: true},
     joinedGroups: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Groups' }],
-    nickname: String,
+    nickName: String,
     customImage: String
 });
 

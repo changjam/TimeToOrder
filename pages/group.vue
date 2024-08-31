@@ -33,7 +33,7 @@ for (const group of joinedGroups) {
   groupDataList.value.push(groupdata.data)
 }
 
-console.log("groupDataList.value:::",groupDataList.value[0][0])
+// console.log("groupDataList.value:::",groupDataList.value[0][0])
 
 showCreateGroupForm.value = groupDataList.value.length === 0
 
