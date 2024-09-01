@@ -8,7 +8,6 @@ import { verify_credential } from '@/utils/auth/verifyHandler'
 const router = useRouter();
 const groupName = ref('')
 const emails = ref([])
-const groupDataList = ref([])
 const user_info = ref(null)
 const user_id = ref('')
 
@@ -32,7 +31,6 @@ onMounted(async () => {
     const groupData = await getGroupData(`_id=${group}`)
     const user_response = await getUserData(`user_id=${groupData.data[0].creator}`);
     const creator_name = user_response.data.nickName || user_response.data.name
-    groupDataList.value.push({...groupData.data[0], creator_name: creator_name})
   }
 })
 
@@ -79,6 +77,7 @@ const createGroup = async () => {
   }
 
   try {
+    console.log('groupData:', groupData)
     const addedGroup = await addGroup(groupData)
     for (const member of groupData.members) {
       await updateUser(member.id, { joinedGroups: addedGroup._id });
@@ -87,8 +86,7 @@ const createGroup = async () => {
     groupName.value = ''
     emails.value = ['']
     alert("新增群組成功")
-    groupDataList.value.push(addedGroup)
-    location.reload()
+    router.push({path:'/groups'})
   } catch (error) {
     console.error('error: ', error)
     alert("新增群組失敗")

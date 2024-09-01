@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { getUserData , updateUser } from '@/utils/users/userHandler'
 import { addGroup , getGroupData } from '@/utils/groups/groupHandler'
 import { verify_credential } from '@/utils/auth/verifyHandler'
+import { date_output_format } from '@/utils/date/timeHandler'
 
 
 const router = useRouter();
@@ -37,10 +38,14 @@ onMounted(async () => {
     <div class="group-container">
         <div class="group-list">
           <h2 class="tab-title">群組列表</h2>
-          <div v-for="(group, idx) in groupDataList" :key="idx" class="group-item">
+          <div 
+            v-for="(group, idx) in groupDataList" :key="idx" 
+            class="group-item"
+            @click="router.push({path: '/groups/' + group._id})"
+          >
             <h3>{{ group.name }}</h3>
             <p>創建人: {{ group.creator_name }}</p>
-            <p>創建時間: {{ new Date(group.created_at).toLocaleString() }}</p>
+            <p>創建時間: {{ date_output_format(group.createdAt) }}</p>
           </div>
         </div>
         <button @click="router.push({path:'/groups/create'})" class="add-button button-style">新增群組</button>
@@ -90,6 +95,10 @@ onMounted(async () => {
     padding: 10px;
     border-radius: 5px;
     margin-bottom: 15px;
+  }
+
+  .group-item:hover{
+    cursor: pointer;
   }
 
   .group-item h3 {
