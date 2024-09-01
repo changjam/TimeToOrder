@@ -1,8 +1,8 @@
 export async function verify_credential() {
-  const response = await useFetch('/api/auth/auth-verify', {
+  const response = await $fetch('/api/auth/auth-verify', {
     method: 'POST'
   })
-  if (response.status.value != 'success')
+  if (!response)
     return;
-  return response.data.value
+  return response
 }
