@@ -4,12 +4,14 @@ import { getUserData , updateUser } from '@/utils/users/userHandler'
 import { addGroup , getGroupData } from '@/utils/groups/groupHandler'
 import { verify_credential } from '@/utils/auth/verifyHandler'
 
+
+const router = useRouter();
 const groupName = ref('')
 const emails = ref([])
 const groupDataList = ref([])
 const user_info = ref(null)
-const showCreateGroupForm = ref(false)
 const user_id = ref('')
+
 
 onMounted(async () => {
   const data = await verify_credential()
@@ -21,7 +23,7 @@ onMounted(async () => {
   user_info.value = response.data;
   emails.value.push(user_info.value.email)
   const joinedGroups = user_info.value.joinedGroups
-  showCreateGroupForm.value = joinedGroups.length === 0
+
   if (joinedGroups.length == 0)
     return;
 
@@ -85,7 +87,6 @@ const createGroup = async () => {
     groupName.value = ''
     emails.value = ['']
     alert("新增群組成功")
-    showCreateGroupForm.value = false
     groupDataList.value.push(addedGroup)
     location.reload()
   } catch (error) {
@@ -98,7 +99,6 @@ const createGroup = async () => {
 <template>
   <div class="group-container-wrapper">
     <div class="group-container">
-      <div v-if="showCreateGroupForm">
         <h2 class="tab-title">新增群組</h2>
         <div class="form-group">
           <label for="groupName">群組名稱:</label>
@@ -118,21 +118,7 @@ const createGroup = async () => {
           <button @click="removeEmail" class="remove-button button-style">刪除成員</button>
         </div>
         <button @click="createGroup" class="submit-button button-style">送出</button>
-        <button @click="showCreateGroupForm = false" class="remove-button button-style">取消</button>
-      </div>
-
-
-      <div v-else>
-        <div class="group-list">
-          <h2 class="tab-title">群組列表</h2>
-          <div v-for="(group, idx) in groupDataList" :key="idx" class="group-item">
-            <h3>{{ group.name }}</h3>
-            <p>創建人: {{ group.creator_name }}</p>
-            <p>創建時間: {{ new Date(group.created_at).toLocaleString() }}</p>
-          </div>
-        </div>
-        <button @click="showCreateGroupForm = true" class="add-button button-style">新增群組</button>
-      </div>
+        <button @click="router.push({path:'/groups'})" class="remove-button button-style">取消</button>
     </div>
   </div>
 </template>
