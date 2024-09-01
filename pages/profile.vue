@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { getUserData, updateUser } from '@/utils/users/userHandler'
 import { verify_credential } from '@/utils/auth/verifyHandler'
+import { spec_time_output_format } from '@/utils/date/timeHandler'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -97,7 +98,7 @@ async function updateUserInfo() {
         </div>
         <div class="profile-field">
           <h3 class="key">加入時間：</h3>
-          <div class="value">{{ new Date(user_info.createdAt).toLocaleString() }}</div>
+          <div class="value">{{ spec_time_output_format(user_info.createdAt) }}</div>
         </div>
         <div class="profile-field">
           <h3 class="key">暱稱：</h3>
