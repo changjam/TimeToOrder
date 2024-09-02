@@ -83,7 +83,7 @@ const CreateOrder = async () => {
         restaurant_id: restaurant_select.value._id,
         order_open_time: startTime_select.value,
         order_lock_time: endTime_select.value,
-        creator_id: user_info.value._id,
+        creator_id: user_info.value.user_id,
         group_id: group_select.value._id,
         status: "Available",
         notes: notes_input.value,
