@@ -121,15 +121,16 @@ async function deleteMember(email,user_info,members,group_id){
       await updateSingleMember({groupId: group_id, memberId: userID })
       await removeJoinedGroup({groupId: group_id, userId: userID })
       router.push(`/groups/${group_id}`)
+      alert("成功刪除")
+      return
     }catch(error){
       console.log(error)
     }
+  }else{
+    alert("刪除失敗")
+    return
   }
   
-
-  if (exist){
-    alert("成功刪除")
-  }
 }
 
 </script>
