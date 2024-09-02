@@ -24,13 +24,11 @@ onMounted(async () => {
 	user_info.value = user_info.value.data
 
 	groupDataList.value = await getGroupByUserID(user_info.value)
+	showCreateGroupForm.value = groupDataList.value.length === 0
 	allUser.value = await getAllUserData()
 	allUser.value = allUser.value.data
 })
 
-const addEmail = () => {
-	emails.value.push('')
-}
 
 showCreateGroupForm.value = groupDataList.value.length === 0
 
@@ -154,6 +152,18 @@ const createGroup = async () => {
 			<button @click="createGroup" class="submit-button">送出</button>
 			<button @click="showCreateGroupForm = false" class="cancel-button">取消</button>
 		</div>
+
+		<div v-else>
+        <div class="group-list">
+          <h2 class="tab-title">群組列表</h2>
+          <div v-for="(group, idx) in groupDataList" :key="idx" class="group-item">
+            <h3>{{ group.name }}</h3>
+            <p>創建人: {{ group.creator_name }}</p>
+            <p>創建時間: {{ new Date(group.created_at).toLocaleString() }}</p>
+          </div>
+        </div>
+        <button @click="showCreateGroupForm = true" class="add-button button-style">新增群組</button>
+      </div>
 
 	</div>
 </template>
