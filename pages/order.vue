@@ -34,6 +34,7 @@ onMounted(async() => {
             } 
         }    
     }
+    console.log(order.value)
 })
 
 function timeFormating(time) {

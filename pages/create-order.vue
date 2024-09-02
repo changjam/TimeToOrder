@@ -3,6 +3,7 @@ import { getRestaurant } from '@/utils/restaurants/restaurantHandler';
 import { getUserData } from '@/utils/users/userHandler'
 import { verify_credential } from '@/utils/auth/verifyHandler'
 import { getGroupByUserID } from '@/utils/Common'
+import { addOrder } from '@/utils/order/orderHandler'
 
 const today = new Date().toISOString().substr(0, 10) + "T00:00:00"
 const restaurant_select = ref({ id: 0 })
@@ -79,11 +80,16 @@ const CreateOrder = async () => {
 
     const orderData = {
         order_name: orderName_input.value,
-        creator_id: user_info.value._id,
         restaurant_id: restaurant_select.value._id,
+        order_open_time: startTime_select.value,
+        order_lock_time: endTime_select.value,
+        creator_id: user_info.value._id,
         group_id: group_select.value._id,
+        status: "Available",
         notes: notes_input.value,
     };
+
+    console.log(orderData)
 
     try {
         await addOrder(orderData);

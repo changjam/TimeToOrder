@@ -122,20 +122,6 @@ const createGroup = async () => {
 
 					<button class="delete-btn" @click="removeMember(member)">delete</button>
 				</section>
-				<section class="member">
-					<img src="~/assets/images/plate_black.svg" alt="">
-					<span class="name">G8報幹長的測試人員53218310</span>
-					<span class="email">tester53218310@gmail.com</span>
-					<button class="delete-btn" @click="removeMember(member)">delete</button>
-				</section>
-				<section v-for="index in 10" class="member">
-					<img src="~/assets/images/plate_black.svg" alt="">
-					<span class="name">測試人員</span>
-					<span class="email">tester@gmail.com</span>
-					<button class="delete-btn" @click="removeMember(member)">delete</button>
-				</section>
-
-
 			</div>
 
 			<input type="text" @input="onInput" class="member_input" v-model="member_input" placeholder="輸入成員...">
