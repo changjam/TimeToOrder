@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue'
-import { getUserData , updateUser } from '@/utils/users/userHandler'
-import { addGroup , getGroupData } from '@/utils/groups/groupHandler'
+import { getUserData , updateUser , updateUserGroupID , getAllUsers , removeJoinedGroup} from '@/utils/users/userHandler'
+import { addGroup , getGroupData , deleteGroupData , updateGroupMember , updateSingleMember } from '@/utils/groups/groupHandler'
 import { verify_credential } from '@/utils/auth/verifyHandler'
 import { date_output_format } from '@/utils/date/timeHandler'
 
@@ -13,6 +13,7 @@ const group_info = ref(null)
 const user_role = ref(null)
 const user_info = ref(null)
 const members_info = ref([])
+const memberEmail = ref('')
 
 onMounted(async () => {
   const data = await verify_credential()
@@ -36,6 +37,101 @@ onMounted(async () => {
   members_info.value.sort((a, b) => order.indexOf(b.status) - order.indexOf(a.status));
 
 })
+
+async function deleteGroup(group_id){
+  const userConfirmed = confirm('確定刪除?');
+
+  if (userConfirmed) {
+      try {
+          await deleteGroupData({ _id: group_id });
+          await updateUserGroupID({ joinedGroups: group_id })
+          alert('成功刪除');
+          router.push('/groups');
+      } catch (error) {
+          console.error('Error deleting group:', error);
+          alert('刪除失敗');
+      }
+  } else {
+      return;
+  }
+}
+
+async function addMember(email,group_members,group_id){
+  const users = await getAllUsers()
+  let exist = false
+  let user_id = null
+  for (const user of users.data){
+    if (user.email === email){
+      user_id = user.user_id
+      exist = true
+    }
+  }
+  
+  if (exist){
+    for (const group_member of group_members){
+      if (group_member.email === email){
+        alert('該使用者已存在於群組中')
+        return
+      }
+      else{        
+        updateGroupMember({groupId: group_id , memberData: {id: user_id, permission_level: 'member'}})
+        updateUser(user_id, { joinedGroups: group_id })
+        alert("成功新增")
+        router.push(`/groups/${group_id}`)
+        return
+      }
+    }
+  }else{
+    alert('找不到該使用者')
+    return
+  }
+}
+
+async function deleteMember(email,user_info,members,group_id){
+  const users = await getAllUsers()
+  let exist = false
+  let userID = null
+  let able_delete = false
+  
+  const response = await getUserData(`user_id=${user_info.id}`);
+  const admin_email = response.data.email
+
+  if (email === admin_email){
+    alert('無法刪除管理員')
+    return
+  }
+
+  for (const user of users.data){
+    if (user.email === email){
+      userID = user.user_id 
+      exist = true 
+    }
+  }
+  if (exist){
+    for (const member of members){
+      if (member.email === email){
+        able_delete = true
+      }
+    }
+    if (!able_delete){
+      alert('該使用者不在群組中')
+      return
+    }
+    try{
+      await updateSingleMember({groupId: group_id, memberId: userID })
+      await removeJoinedGroup({groupId: group_id, userId: userID })
+      router.push(`/groups/${group_id}`)
+    }catch(error){
+      console.log(error)
+    }
+  }
+  
+
+  if (exist){
+    alert("成功刪除")
+  }
+}
+
 </script>
 
 <template>
@@ -44,7 +140,7 @@ onMounted(async () => {
       <div class="group-list">
         <div class="tab-title">
           <input type="text" :value="group_info.name" :disabled="user_info.permission_level !== 'admin'">
-          <button class="remove-button button-style" v-if="user_info.permission_level == 'admin'">刪除群組</button>
+          <button class="remove-button button-style" v-if="user_info.permission_level == 'admin'" @click="deleteGroup(group_info._id)">刪除群組</button>
         </div>
         <div 
           v-for="(member, idx) in members_info" :key="idx" 
@@ -73,10 +169,10 @@ onMounted(async () => {
         class="member-manage-container"
         v-if="user_info.permission_level == 'admin'"
       >
-        <input type="email" placeholder="輸入成員信箱" class="input-field" />
+        <input type="email" placeholder="輸入成員信箱" class="input-field" v-model="memberEmail"/>
         <div class="horizontal-container">
-          <button @click="" class="add-button button-style">新增成員</button>
-          <button @click="" class="remove-button button-style">刪除成員</button>
+          <button @click="addMember(memberEmail,members_info,group_info._id)" class="add-button button-style">新增成員</button>
+          <button @click="deleteMember(memberEmail,user_info,members_info,group_info._id)" class="remove-button button-style">刪除成員</button>
         </div>
       </div>
       <button v-if="user_info.permission_level == 'admin'" @click="" class="submit-button button-style">發起訂單</button>
@@ -185,8 +281,8 @@ onMounted(async () => {
   justify-content: center;
 
 }
-.header .header-name{
-}
+/* .header .header-name{
+} */
 .header .header-role{
   margin-left: 8px;
   width: 60px;
