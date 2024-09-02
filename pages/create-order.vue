@@ -19,7 +19,7 @@ const State = {
     'time': 3,
     'check': 4,
 }
-const currentState = ref(State.time)
+const currentState = ref(State.restaurant)
 
 const selectRestaurant = (restaurant) => {
     restaurant_select.value = restaurant;
@@ -42,11 +42,6 @@ const restaurants = ref([]);
 
 onMounted(async () => {
     const data = await verify_credential()
-    if (!data)
-        router.push('/login')
-
-onMounted(async () => {
-    const data = await verify_credential()
     if (!data) {
         router.push('/login')
     }
@@ -59,7 +54,6 @@ onMounted(async () => {
     // 獲得餐廳
     restaurants.value = await getRestaurant();
 })
-
 
 const CreateOrder = async () => {
     if (restaurant_select.value.name == undefined) {
@@ -74,11 +68,11 @@ const CreateOrder = async () => {
         window.alert("請輸入訂單名稱")
         return
     }
-    if(startTime_select.value == undefined){
+    if (startTime_select.value == undefined) {
         window.alert("請選擇開始時間")
         return
     }
-    if(endTime_select.value == undefined){
+    if (endTime_select.value == undefined) {
         window.alert("請選擇截止時間")
         return
     }
@@ -101,7 +95,6 @@ const CreateOrder = async () => {
     }
 
 }
-
 
 </script>
 
@@ -155,7 +148,7 @@ const CreateOrder = async () => {
 
             <main v-if="currentState == State.check" class="check-container">
                 <section class="restaurant">
-                    
+
                     <div v-if="restaurant_select.name">
                         <img :src="restaurant_select.image" alt="Restaurant Image" class="restaurant-image" />
                         <div class="restaurant-info">
@@ -168,15 +161,15 @@ const CreateOrder = async () => {
                 </section>
 
                 <section class="others">
-                    <span v-if="orderName_input!=''">{{orderName_input}}</span>
+                    <span v-if="orderName_input != ''">{{ orderName_input }}</span>
                     <span v-else class="warning">尚未輸入訂單名稱</span>
-                    <span v-if="group_select.name">{{group_select.name}}</span>
+                    <span v-if="group_select.name">{{ group_select.name }}</span>
                     <span v-else class="warning">尚未選擇群組</span>
-                    <span v-if="startTime_select">訂單截止時間:{{new Date(startTime_select).toLocaleString()}}</span>
+                    <span v-if="startTime_select">訂單截止時間:{{ new Date(startTime_select).toLocaleString() }}</span>
                     <span v-else class="warning">未設定訂單開始時間</span>
-                    <span v-if="endTime_select">訂單截止時間:{{new Date(endTime_select).toLocaleString()}}</span>
+                    <span v-if="endTime_select">訂單截止時間:{{ new Date(endTime_select).toLocaleString() }}</span>
                     <span v-else class="warning">未設定訂單截止時間</span>
-                    <span>備註:{{notes_input===''?'無':notes_input}}</span>
+                    <span>備註:{{ notes_input === '' ? '無' : notes_input }}</span>
                     <button class="submit" @click="CreateOrder">建立訂單</button>
                 </section>
             </main>
@@ -302,6 +295,7 @@ main.restaurant-container div .restaurant-info {
     left: 0;
     width: 50%;
 }
+
 .next-step {
     font-size: 1.5rem;
     position: absolute;
@@ -309,6 +303,7 @@ main.restaurant-container div .restaurant-info {
     right: 0;
     width: 50%;
 }
+
 .before-step:hover,
 .next-step:hover {
     cursor: pointer;
@@ -371,7 +366,7 @@ main.restaurant-container div .restaurant-info {
     padding: 1rem;
     width: 80%;
     height: 80%;
-    margin-inline:auto;
+    margin-inline: auto;
     overflow-y: auto;
 }
 
@@ -382,18 +377,22 @@ main.restaurant-container div .restaurant-info {
 .check-container .warning {
     color: rgb(232, 55, 55);
 }
+
 .check-container section.restaurant {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
 }
-.check-container section.restaurant>div{
-    box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+
+.check-container section.restaurant>div {
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
 }
-.check-container section.restaurant>div .restaurant-info{
+
+.check-container section.restaurant>div .restaurant-info {
     padding: 1rem;
 }
+
 .check-container section.restaurant img {
     height: 350px;
     width: 350px;
@@ -401,22 +400,25 @@ main.restaurant-container div .restaurant-info {
     margin: 1rem;
     border: 1px solid var(--light-gray)
 }
-.check-container section.others{
+
+.check-container section.others {
     display: flex;
     flex-direction: column;
     border-left: 1px solid var(--black);
     padding: 1rem;
     position: relative;
 }
-.check-container section.others button.submit{
+
+.check-container section.others button.submit {
     font-size: 1rem;
     position: absolute;
-    bottom:1rem;
+    bottom: 1rem;
     right: 1rem;
-    padding:1rem;
+    padding: 1rem;
 }
-.check-container section.others button.submit:hover{
-    cursor:pointer;
+
+.check-container section.others button.submit:hover {
+    cursor: pointer;
     background: var(--light-blue)
 }
 </style>
