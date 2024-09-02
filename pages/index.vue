@@ -15,7 +15,7 @@
 			<!-- <FeatureCard :Feature="{id:'restaurant' , name:'查看餐廳'}" FontSize="5.5em" :FontLine="6"/> -->
 
 			<nav class="sub-features">
-				<div @click="router.push({path:'group'})">
+				<div @click="router.push({path:'groups'})">
 					<p>查看群組</p>
 				</div>
 				<div>
