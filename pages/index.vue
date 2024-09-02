@@ -1,18 +1,14 @@
 <template>
 	<div class="index-wrapper" v-if="user_info">
 		<div class="user-info-wrapper">
-			<img id="user-avatar" :src="user_info.customImage || user_info.image"  alt="">
+			<img id="user-avatar" :src="user_info.customImage || user_info.image"  alt="user-image">				
 			<h1> 歡迎 <span class="name">{{ user_info.nickName || user_info.name }}</span> 上餐廳，親愛精誠</h1>
 		</div>
 
 		<nav class="features">
 			<OrderCard />
-			<!-- <CreateRestCard /> -->
 			<CreateOrderCard/>
 			<RestaurantCard />
-			<!-- <FeatureCard :Feature="{id:'order' , name:'開始點單'}" FontSize="5.5em" :FontLine="6"/> -->
-			<!-- <FeatureCard :Feature="{id:'create-order' , name:'建立訂單'}" FontSize="5.5em" :FontLine="6"/> -->
-			<!-- <FeatureCard :Feature="{id:'restaurant' , name:'查看餐廳'}" FontSize="5.5em" :FontLine="6"/> -->
 
 			<nav class="sub-features">
 				<div @click="router.push({path:'groups'})">
