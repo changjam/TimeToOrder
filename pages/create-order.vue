@@ -40,6 +40,10 @@ const goNext = () => {
 const user_info = ref('')
 const restaurants = ref([]);
 
+onMounted(async () => {
+    const data = await verify_credential()
+    if (!data)
+        router.push('/login')
 
 onMounted(async () => {
     const data = await verify_credential()
