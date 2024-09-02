@@ -1,11 +1,13 @@
 <script setup>
-// const today = ref(new Date().toISOString().substr(0,19))
-const today = ref(new Date().toISOString().substr(0, 10))
-const min_dateTime = today.value + "T00:00:00"
+import { getRestaurant } from '@/utils/restaurants/restaurantHandler';
+import { getGroupData } from '@/utils/groups/groupHandler';
+import { getUserData } from '@/utils/users/userHandler'
+import { verify_credential } from '@/utils/auth/verifyHandler'
+
+const today = new Date().toISOString().substr(0, 10) + "T00:00:00"
 const restaurant_select = ref()
 const group_select = ref()
 const endTime_select = ref()
-
 const router = useRouter()
 
 
@@ -21,9 +23,40 @@ const group_change = (event) => {
     router.push({ path: '/create-group' })
 }
 
+const user_id = ref('')
+const restaurants = ref([]);
+const groupDataList = ref([]);
+
+// get Group and Restaurants
+async function fetchData() {
+    try {
+        const data = await getRestaurant();
+        restaurants.value = data;
+
+        const user_info = await getUserData(`user_id=${user_id.value}`);
+        const joinedGroups = user_info.data.joinedGroups;
+
+        for (const group of joinedGroups) {
+            const groupdata = await getGroupData(`_id=${group}`);
+            groupDataList.value.push(groupdata.data);
+        }
+    } catch (error) {
+        console.error("Error fetching data:", error);
+    }
+}
 
 
-const CreateOrder = () => {
+onMounted(async () => {
+    const data = await verify_credential()
+    if (!data)
+        router.push('/login')
+
+    user_id.value = data.user_id;
+    fetchData();
+})
+
+
+const CreateOrder = async() => {
     const _restaurant = restaurant_select.value.value;
     const _group = group_select.value.value;
     const _endTime = endTime_select.value.value
@@ -36,18 +69,23 @@ const CreateOrder = () => {
         return
     }
 
-    const OrderCreate = {
-        restaurant: _restaurant,
-        group: _group,
-        endAt: _endTime
+    const orderData = {
+      order_name: orderName.value,
+      creator_id: user_id.value,
+      restaurant_id: selectedRestaurantId.value,
+      group_id: selectedGroupId.value,
+      notes: notes.value,
+    };
+
+    try {
+      await addOrder(orderData);
+      console.log("orderData:",orderData)
+      alert('訂單創建成功!');
+    } catch (error) {
+      console.error('Error creating order:', error);
+      alert('訂單創建失敗.');
     }
 
-    return "刪除這行"
-
-    useFetch('', {
-        method: "POST",
-        body: OrderCreate
-    })
 }
 
 
@@ -60,21 +98,21 @@ const CreateOrder = () => {
                 <label for="restaurant-select">選擇餐廳:</label>
                 <select name="restaurant" id="restaurant-select" ref="restaurant_select" @change="restaurant_change">
                     <option value="none">--請選擇餐廳--</option>
-                    <option value="八方雲集">八方雲集</option>
+                    <option v-for="restaurant in restaurants" :value="restaurant._id" :key="restaurant._id">{{restaurant.name}}</option>
                     <option value="create-restaurant">--建立新餐廳--</option>
                 </select>
 
                 <label for="group-select">群組:</label>
                 <select name="group" id="group-select" ref="group_select" @change="group_change">
-                    <option value="none">--請選擇群組--</option>
-                    <option value="所有人">所有人</option>
+                    <option value="none">--請選擇群組--</option>                    
+                    <option v-for="group in groupDataList" :value="group._id" :key="group._id">{{group.name}}</option>
                     <option value="create-group">--建立新群組--</option>
                 </select>
 
 
                 <label for="endTime-select">期限:</label>
-                <input ref="endTime_select" type="datetime-local" id="endTime-select" :value="min_dateTime"
-                    :min="min_dateTime" />
+                <input ref="endTime_select" type="datetime-local" id="endTime-select" :value="today"
+                    :min="today" />
                 <button @click="CreateOrder">建立</button>
             </nav>
 
@@ -88,10 +126,10 @@ const CreateOrder = () => {
                     </div>
                     <div class="group-review">
                         群組:group.name
-                        群組成員:group.members                        
+                        群組成員:group.members
                     </div>
                     <div class="endtime-review">
-                        截止期限:{{endTime_select.value}}
+                        截止期限:{{ endTime_select }}
                     </div>
                 </section>
             </main>
@@ -133,17 +171,18 @@ const CreateOrder = () => {
     border-bottom: 1px solid var(--black)
 }
 
-.create-order-wrapper main{
+.create-order-wrapper main {
     padding-inline: 1rem;
     display: grid;
     grid-template-columns: 1fr 1fr;
 }
 
-.create-order-wrapper main section{
+.create-order-wrapper main section {
     display: grid;
-    grid-template-rows:1fr 1fr 1fr ;
+    grid-template-rows: 1fr 1fr 1fr;
 }
-.create-order-wrapper main section>div{
+
+.create-order-wrapper main section>div {
     border-bottom: 1px solid var(--black);
 }
 </style>
