@@ -119,7 +119,9 @@ async function save_to_DB(user_info, user_response){
 }
 
 .google-login #google {
+  height: 50px;
   width: 50px;
+  object-fit: cover;
   max-width: 100%;
   z-index: 2;
   position: absolute;
