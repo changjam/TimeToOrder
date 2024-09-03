@@ -41,45 +41,43 @@ onMounted(async () => {
 async function deleteGroup(group_id){
   const userConfirmed = confirm('確定刪除?');
 
-  if (userConfirmed) {
-      try {
-          await deleteGroupData({ _id: group_id });
-          await updateUserGroupID({ joinedGroups: group_id })
-          alert('成功刪除');
-          router.push('/groups');
-      } catch (error) {
-          console.error('Error deleting group:', error);
-          alert('刪除失敗');
-      }
-  } else {
-      return;
+  if (!userConfirmed){
+    return;
   }
+
+  try {
+      await deleteGroupData({ _id: group_id });
+      await updateUserGroupID({ joinedGroups: group_id })
+      alert('成功刪除');
+      location.reload();
+  } catch (error) {
+      console.error('Error deleting group:', error);
+      alert('刪除失敗');
+  } 
 }
 
 async function addMember(email,group_members,group_id){
   const users = await getAllUsers()
-  let exist = false
+
   let user_id = null
   for (const user of users.data){
     if (user.email === email){
       user_id = user.user_id
-      exist = true
     }
   }
   
-  if (exist){
+  if (user_id){
     for (const group_member of group_members){
       if (group_member.email === email){
         alert('該使用者已存在於群組中')
         return
       }
-      else{        
-        updateGroupMember({groupId: group_id , memberData: {id: user_id, permission_level: 'member'}})
-        updateUser(user_id, { joinedGroups: group_id })
-        alert("成功新增")
-        router.push(`/groups/${group_id}`)
-        return
-      }
+       
+      updateGroupMember({groupId: group_id , memberData: {id: user_id, permission_level: 'member'}})
+      updateUser(user_id, { joinedGroups: group_id })
+      alert("成功新增")
+      location.reload();
+      return    
     }
   }else{
     alert('找不到該使用者')
@@ -87,14 +85,16 @@ async function addMember(email,group_members,group_id){
   }
 }
 
-async function deleteMember(email,user_info,members,group_id){
+async function deleteMember(email,members,group_id){
   const users = await getAllUsers()
-  let exist = false
   let userID = null
   let able_delete = false
-  
-  const response = await getUserData(`user_id=${user_info.id}`);
-  const admin_email = response.data.email
+  let admin_email = null
+  for (const member of members){
+    if (member.permission_level === 'admin'){
+      admin_email = member.email
+    }
+  } 
 
   if (email === admin_email){
     alert('無法刪除管理員')
@@ -104,10 +104,9 @@ async function deleteMember(email,user_info,members,group_id){
   for (const user of users.data){
     if (user.email === email){
       userID = user.user_id 
-      exist = true 
     }
   }
-  if (exist){
+  if (userID){
     for (const member of members){
       if (member.email === email){
         able_delete = true
@@ -120,7 +119,7 @@ async function deleteMember(email,user_info,members,group_id){
     try{
       await updateSingleMember({groupId: group_id, memberId: userID })
       await removeJoinedGroup({groupId: group_id, userId: userID })
-      router.push(`/groups/${group_id}`)
+      location.reload();
       alert("成功刪除")
       return
     }catch(error){
@@ -130,7 +129,6 @@ async function deleteMember(email,user_info,members,group_id){
     alert("刪除失敗")
     return
   }
-  
 }
 
 </script>
@@ -173,7 +171,7 @@ async function deleteMember(email,user_info,members,group_id){
         <input type="email" placeholder="輸入成員信箱" class="input-field" v-model="memberEmail"/>
         <div class="horizontal-container">
           <button @click="addMember(memberEmail,members_info,group_info._id)" class="add-button button-style">新增成員</button>
-          <button @click="deleteMember(memberEmail,user_info,members_info,group_info._id)" class="remove-button button-style">刪除成員</button>
+          <button @click="deleteMember(memberEmail,members_info,group_info._id)" class="remove-button button-style">刪除成員</button>
         </div>
       </div>
       <button v-if="user_info.permission_level == 'admin'" @click="" class="submit-button button-style">發起訂單</button>

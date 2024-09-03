@@ -77,7 +77,6 @@ const createGroup = async () => {
   }
 
   try {
-    console.log('groupData:', groupData)
     const addedGroup = await addGroup(groupData)
     for (const member of groupData.members) {
       await updateUser(member.id, { joinedGroups: addedGroup._id });
