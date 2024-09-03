@@ -72,16 +72,13 @@ async function addMember(email,group_members,group_id){
         alert('該使用者已存在於群組中')
         return
       }
-       
-      updateGroupMember({groupId: group_id , memberData: {id: user_id, permission_level: 'member'}})
-      updateUser(user_id, { joinedGroups: group_id })
-      alert("成功新增")
-      location.reload();
-      return    
-    }
+    }   
+    await updateGroupMember({groupId: group_id , memberData: {id: user_id, permission_level: 'member'}})
+    await updateUser(user_id, { joinedGroups: group_id })
+    alert("成功新增")
+    location.reload();   
   }else{
     alert('找不到該使用者')
-    return
   }
 }
 

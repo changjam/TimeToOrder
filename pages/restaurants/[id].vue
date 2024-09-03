@@ -11,6 +11,8 @@ const menu_data = ref(null);
 const classifiedMenu = ref({});
 const classifiedDishes = ref(null)
 var categories = ref(null);
+var order_info = ref(null)
+
 
 const fetchMenus = async (restaurantId) => {
     try {
@@ -24,7 +26,11 @@ const fetchMenus = async (restaurantId) => {
 
 onMounted(async () => {
   classifiedMenu.value = await fetchMenus(_id);
-  console.log("classifiedMenu::", classifiedMenu.value);
+  order_info.value = menu_data.value.data
+  order_info.value.forEach(obj => {
+    obj.mount = NaN;
+    obj.note = "";
+  });
 });
 
 const goBack = () => {
@@ -36,29 +42,41 @@ const resultWrapper = ref(null);
 const test = (dish) => {
   const volumeElement = document.getElementById(`volume-${dish.name}`);
   const remarkElement = document.getElementById(`remark-${dish.name}`);
-  
+
   const volume = volumeElement ? volumeElement.value : 0;
   const remark = remarkElement ? remarkElement.value : '';
-  
-  if (volume > 0) {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <th scope="row" class="cell">${dish.name}</th>
-      <td class="price" class="cell">${dish.price}</td>
-      <td align="right" class="cell">${volume}個</td>
-      <td align="right" class="cell">${remark}</td>
-    `;
-    
-    if (resultWrapper.value) {
-      resultWrapper.value.appendChild(tr);
-    }
-    
-    if (volumeElement) volumeElement.value = 0;
-    if (remarkElement) remarkElement.value = '';
-  } else {
+
+  if (volume == 0){
     alert('數量必須大於0');
+    return
   }
-};
+  const tr = document.createElement('tr');
+  for ( const order of order_info.value ){
+    if ( order._id == dish._id ){
+      order.mount = volume;
+      order.note = remark;
+    }
+  }
+  
+  if (resultWrapper.value) {
+    resultWrapper.value.innerHTML = '';
+    order_info.value
+      .filter(order => order.mount > 0)
+      .forEach(order => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <th scope="row" class="cell">${order.name}</th>
+          <td class="price" class="cell">${order.price}</td>
+          <td align="right" class="cell">${order.mount}個</td>
+          <td align="right" class="cell">${order.note}</td>
+        `;
+        resultWrapper.value.appendChild(tr);
+      });
+  }
+
+  if (volumeElement) volumeElement.value = 0;
+  if (remarkElement) remarkElement.value = '';
+}
 </script>
 
 
@@ -111,8 +129,9 @@ const test = (dish) => {
             </tr>
           </thead>
           <tbody ref="resultWrapper">
-            
+        
           </tbody>
+          <button class="order-btn">確認訂購</button>
         </table>
       </div>
     </div>
@@ -186,5 +205,9 @@ button:hover {
     cursor: pointer;
 }
 
+.order-btn{
+  font-size: 20px;
+  text-align: right;
+}
 
 </style>
