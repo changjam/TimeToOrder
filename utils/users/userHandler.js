@@ -10,6 +10,19 @@ export async function getUserData(data) {
     }
 }
 
+export async function getAllUserData() {
+  try {
+      const response = await $fetch(`/api/users/getAllUsers`, {
+          method: 'GET',
+      });
+      return response;
+
+  } catch (error) {
+      throw new Error('Failed to get All UserData');
+  }
+}
+
+
 export async function updateUser(id, updateFields) {
   try {
     const response = await $fetch(`/api/users/put`, {

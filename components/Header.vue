@@ -5,10 +5,10 @@ const router = useRouter()
 <template>
     <header class="curved">
         <div class='title-container' @click="router.push({ path: '/' })">
-
             <img src="~/assets/images/logo.png" alt="Logo" id="logo" />
         </div>
     </header>
+    <span class="header shadow"></span>
 </template>
 
 <style>
@@ -71,5 +71,33 @@ header.curved>* {
 
 .title-container:hover {
     cursor: pointer;
+}
+
+.header.shadow {
+    box-sizing: border-box;
+
+    position: absolute;
+    top: 15px;
+    width: 100%;
+    height: var(--header-height);
+
+    background: transparent;
+    z-index: 99;
+}
+
+.header.shadow::before {
+    box-sizing: border-box;
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* background: linear-gradient(to bottom, black, transparent); */
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0));
+    filter: blur(15px);   
+
+    border-radius: 0 0 50% 50%/0 0 100% 100%;    
+    transform: scaleX(1.5);
 }
 </style>

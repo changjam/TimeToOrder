@@ -3,7 +3,7 @@ const router = useRouter();
 </script>
 
 <template>
-    <div id="createOrderCard" @click="router.push({path:'/create_order'})">
+    <div id="createOrderCard" @click="router.push({path:'/create-order'})">
         <h1>建立訂單</h1>
         <img src="~/assets/images/create-order.svg" alt="">
     </div>
