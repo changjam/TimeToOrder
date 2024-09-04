@@ -1,18 +1,22 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted , onBeforeUnmount } from 'vue';
 import { getMenus, classifyDishes } from '@/utils/menus/menuHandler';
 import { useRoute, useRouter } from '#app';
+import { getUserData } from '@/utils/users/userHandler'
+import { verify_credential } from '@/utils/auth/verifyHandler'
+import { updateOrder } from '~/utils/order/orderHandler';
 
 const route = useRoute();
 const router = useRouter();
 
-const _id = route.fullPath.match(/\/restaurants\/(.+)/)[1];
+const _id = route.fullPath.match(/\/restaurants\/(.+)?/)[1];
 const menu_data = ref(null);
 const classifiedMenu = ref({});
 const classifiedDishes = ref(null)
 var categories = ref(null);
-var order_info = ref(null)
-
+var order_info = ref(null); // 訂購資訊
+const order_id = useState('order_id')
+const user_info = ref('')
 
 const fetchMenus = async (restaurantId) => {
     try {
@@ -25,6 +29,9 @@ const fetchMenus = async (restaurantId) => {
 };
 
 onMounted(async () => {
+  const data = await verify_credential()
+  const user_id = data.user_id
+  user_info.value = await getUserData(`user_id=${user_id}`);
   classifiedMenu.value = await fetchMenus(_id);
   order_info.value = menu_data.value.data
   order_info.value.forEach(obj => {
@@ -32,6 +39,11 @@ onMounted(async () => {
     obj.note = "";
   });
 });
+
+// 後續處理...
+// onBeforeUnmount(() => {
+//   order_id.value = ''
+// })
 
 const goBack = () => {
   router.push('/restaurants');
@@ -46,10 +58,11 @@ const test = (dish) => {
   const volume = volumeElement ? volumeElement.value : 0;
   const remark = remarkElement ? remarkElement.value : '';
 
-  if (volume == 0){
-    alert('數量必須大於0');
-    return
-  }
+  // 暫時刪除 直接用order_info判斷
+  // if (volume == 0){
+  //   alert('數量必須大於0');
+  //   return
+  // }
   const tr = document.createElement('tr');
   for ( const order of order_info.value ){
     if ( order._id == dish._id ){
@@ -77,6 +90,41 @@ const test = (dish) => {
   if (volumeElement) volumeElement.value = 0;
   if (remarkElement) remarkElement.value = '';
 }
+
+const ordering = async () => {
+  const orders = order_info.value.filter(order => order.mount > 0);
+
+  if (!orders.length){
+    alert('請選擇餐點');
+    return
+  }
+  const orderDetails = {
+    name: user_info.value.data.name,
+    totalAmount: NaN,
+    orderedItems: [],
+    user_id: user_info.value.data.user_id,
+    orderTime: new Date().toLocaleString()
+  }
+
+  let total = 0;
+  for (const order of orders){
+    total += order.mount * order.price;
+    orderDetails.orderedItems.push({
+      itemName: order.name,
+      quantity: order.mount
+    });
+  }
+  orderDetails.totalAmount = total;
+
+  try{
+    await updateOrder(order_id.value, orderDetails, user_info.value.data.user_id)
+    alert("訂單已送出") 
+  }catch(error){
+    console.log(error)
+    alert("訂單送出失敗")
+  }
+}
+
 </script>
 
 
@@ -131,7 +179,7 @@ const test = (dish) => {
           <tbody ref="resultWrapper">
         
           </tbody>
-          <button class="order-btn">確認訂購</button>
+          <button class="order-btn" @click="ordering">確認訂購</button>
         </table>
       </div>
     </div>

@@ -77,6 +77,10 @@ const CreateOrder = async () => {
         window.alert("請選擇截止時間")
         return
     }
+    if (startTime_select.value >= endTime_select.value) {
+        window.alert("開始時間必須小於截止時間")
+        return
+    }
 
     const orderData = {
         order_name: orderName_input.value,
@@ -85,15 +89,12 @@ const CreateOrder = async () => {
         order_lock_time: endTime_select.value,
         creator_id: user_info.value.user_id,
         group_id: group_select.value._id,
-        status: "Available",
         notes: notes_input.value,
     };
 
-    console.log(orderData)
 
     try {
         await addOrder(orderData);
-        console.log("orderData:", orderData)
         alert('訂單創建成功!');
     } catch (error) {
         console.error('Error creating order:', error);

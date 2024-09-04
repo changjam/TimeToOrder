@@ -1,11 +1,14 @@
 <script setup>
 import { getUserData } from '@/utils/users/userHandler'
-import { getOrders } from '@/utils/order/orderHandler'
+import { getOrders, updateStatus } from '@/utils/order/orderHandler'
 import { getMenus } from '@/utils/menus/menuHandler';
 import { verify_credential } from '@/utils/auth/verifyHandler'
+import { useRouter } from '#app';
 
 const order = ref([])
 const user_id = ref('')
+const router = useRouter();
+const order_id = useState('order_id', () => '')
 
 async function getUserInfo() {
   const data = await verify_credential()
@@ -34,6 +37,8 @@ onMounted(async() => {
             } 
         }    
     }
+    console.log(order.value)
+    monitorOrderStatus(order.value)
 })
 
 function timeFormating(time) {
@@ -72,15 +77,67 @@ const getPriceRange = async (restaurantId) => {
     }
   };
 
+const toOrder = ( restaurant_id, orderID ) => {
+    order_id.value = orderID;
+    router.push(`restaurants/${restaurant_id}`);
+}
+
+
+const monitorOrderStatus = (activeOrders) => {
+    const intervalId = setInterval(() => {
+        const now = new Date().toISOString();
+
+        activeOrders = activeOrders.filter(item => {
+            const { order_open_time: openTime, order_lock_time: lockTime, hasOpened, hasClosed } = item;
+
+            if (!hasOpened && now >= openTime && now < lockTime) {
+                console.log(`開放 : ${item.order_name}`);
+                item.hasOpened = true; // 標記為已開放
+
+            } else if (!hasClosed && now >= lockTime) {
+                console.log(`關閉 : ${item.order_name}`);
+                item.hasClosed = true; // 標記為已關閉
+                return false; // 移除已關閉的訂單
+            }
+            return true; // 保留尚未關閉的訂單
+        });
+
+        if (activeOrders.length === 0) {
+            clearInterval(intervalId); // 停止檢查，因為所有訂單都已關閉
+        }
+    }, 1000);
+};
+
+const close_order = async (ID, status, group_id) => {
+    console.log(group_id)
+    if (status === "Finished"){
+        alert("已為關閉狀態")
+        return
+    }
+
+    try{
+        await updateStatus({orderId: ID , Status: "Finished"})
+        alert("成功關閉")
+    }catch(error){
+        console.log(error)
+        alert("關閉失敗")
+    }
+    
+    location.reload()
+}
+
 </script>
 
 <template>
     <div v-if="order" class="order-wrapper">
         <div class="order-list">
-            <div class="order-container" v-for="item in order" :key="item._id" @click="$router.push(`restaurants/${item.restaurant_id._id}`)">
+            <div class="order-container" v-for="item in order" :key="item._id" @click="toOrder( item.restaurant_id._id, item._id )">
                 <section class="main">
                     <h1>{{ item.order_name }}</h1>
                     <span class="master">創建人:{{ item.creator }}</span>
+                    <span class="master">訂單狀態:{{ item.status }}</span>
+                    <button v-if="item.creator_id === user_id" @click.stop="close_order(item._id, item.status, item.group_id)">結束訂單</button>
+
                 </section>
                 <section class="info">
                     <span>價格: {{ item.priceRange }}</span>
@@ -94,14 +151,13 @@ const getPriceRange = async (restaurantId) => {
 
         </div>
     </div>
-
+    
     <div v-else class="order-wrapper">
         <h1 class="error-msg">看起來沒有訂單可以點，你可以</h1>
         <nav class="features">
             <CreateOrderCard />
         </nav>
     </div>
-
 
 </template>
 
