@@ -28,7 +28,7 @@ onMounted(async () => {
     console.log(joinedGroups)
     const groupData = await getGroupData(`_id=${group}`)
     console.log("groupData:",groupData)
-    const user_response = await getUserData(`user_id=${groupData.data[0].creator}`);
+    const user_response = await getUserData(`user_id=${groupData.data.creator}`);
     const creator_name = user_response.data.nickName || user_response.data.name
     groupDataList.value.push({...groupData.data[0], creator_name: creator_name})
   }
