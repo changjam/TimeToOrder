@@ -10,18 +10,17 @@ export async function getUserData(data) {
     }
 }
 
-export async function getAllUserData() {
-  try {
-      const response = await $fetch(`/api/users/getAllUsers`, {
-          method: 'GET',
-      });
-      return response;
-
-  } catch (error) {
-      throw new Error('Failed to get All UserData');
-  }
+export async function getUsersDataInGroup(data) {
+    try {      
+        const response = await $fetch(`/api/users/get_matchGroups?${data}`, {
+            method: 'GET',
+        });
+        return response;
+        
+    } catch (error) {
+        throw new Error('Failed to get UserData');
+    }
 }
-
 
 export async function updateUser(id, updateFields) {
   try {
@@ -57,7 +56,6 @@ export async function updateUserGroupID(data) {
   return { success: false, message: 'Update failed' };
 }
 
-
 export async function getAllUsers() {
   try {
     const response = await $fetch(`/api/users/getAll`, {
@@ -69,7 +67,6 @@ export async function getAllUsers() {
       throw new Error('Failed to get AllUserData');
   }  
 }
-
 
 export async function removeJoinedGroup(data) {
   try {

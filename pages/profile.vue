@@ -39,11 +39,50 @@ onMounted(async () => {
 })
 
 function handleImageUpload(event) {
-  const file = event.target.files[0]
-  const reader = new FileReader()
-  reader.onload = async () => {image_b64.value = reader.result}
-  reader.readAsDataURL(file)
+  const file = event.target.files[0];
+  const reader = new FileReader();
+
+  reader.onload = async () => {
+    const img = new Image();
+    img.src = reader.result;
+
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const maxWidth = 800; // 设定最大宽度
+      const maxHeight = 600; // 设定最大高度
+      let width = img.width;
+      let height = img.height;
+
+      // 保持宽高比进行压缩
+      if (width > height) {
+        if (width > maxWidth) {
+          height *= maxWidth / width;
+          width = maxWidth;
+        }
+      } else {
+        if (height > maxHeight) {
+          width *= maxHeight / height;
+          height = maxHeight;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // 获取压缩后的base64图片
+      const compressedDataUrl = canvas.toDataURL('image/jpeg', 1); // 第二个参数为压缩质量，0.7表示70%
+
+      image_b64.value = compressedDataUrl; // 将压缩后的图片赋值给image_b64
+    };
+  };
+
+  reader.readAsDataURL(file);
 }
+
+
 
 function check_nickName_format() {
   if (nickName.value.length > 15) {

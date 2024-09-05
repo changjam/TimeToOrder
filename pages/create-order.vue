@@ -242,6 +242,7 @@ main.restaurant-container {
     display: grid;
     grid-template-columns: repeat(auto-fit, 300px);
     grid-auto-rows: 400px;
+    justify-content: center;
     gap: 1rem;
     padding: 1rem;
     max-height: 80%;

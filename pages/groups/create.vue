@@ -1,210 +1,309 @@
 <script setup>
 import { ref } from 'vue'
-import { getUserData , updateUser } from '@/utils/users/userHandler'
-import { addGroup , getGroupData } from '@/utils/groups/groupHandler'
+import { getUserData, updateUser, getAllUsers } from '@/utils/users/userHandler'
+import { addGroup, getGroupData } from '@/utils/groups/groupHandler'
 import { verify_credential } from '@/utils/auth/verifyHandler'
+import defaultAvatar from '~/assets/images/plate_black.svg'
 
 
 const router = useRouter();
 const groupName = ref('')
-const emails = ref([])
+const members = ref(new Map())
+const member_input = ref('');
 const user_info = ref(null)
-const user_id = ref('')
+const allUser = ref('')
+const showSuggestions = ref(false);
 
 
 onMounted(async () => {
-  const data = await verify_credential()
-  if (!data) 
-    router.push('/login');
+	const data = await verify_credential()
+	if (!data)
+		router.push('/login');
 
-  user_id.value = data.user_id;
-  const response = await getUserData(`user_id=${user_id.value}`);
-  user_info.value = response.data;
-  emails.value.push(user_info.value.email)
-  const joinedGroups = user_info.value.joinedGroups
+	user_info.value = await getUserData(`user_id=${data.user_id}`)
+	user_info.value = user_info.value.data
 
-  if (joinedGroups.length == 0)
-    return;
+	allUser.value = await getAllUsers()
+	allUser.value = allUser.value.data
 
-  // setting group data
-  for (const group of joinedGroups) {
-    const groupData = await getGroupData(`_id=${group}`)
-    const user_response = await getUserData(`user_id=${groupData.data[0].creator}`);
-    const creator_name = user_response.data.nickName || user_response.data.name
-  }
+	let _group_creator = user_info.value
+	_group_creator.permission_level = 'admin'
+	_group_creator.readOnly = true;
+
+	members.value.set(_group_creator.user_id, _group_creator)
 })
 
-const addEmail = () => {
-  if (new Set(emails.value).size !== emails.value.length)
-    return alert('幹什麼！ 你哪一連的？ 不要輸入同樣的 email 聽不懂是不是拉？');
-  emails.value.push('')
+const filteredUsers = computed(() => {
+	if (member_input.value) {
+		const searchQuery = member_input.value.toLowerCase()
+		return allUser.value.filter(user => {
+			const _email = user.email.split('@')[0];
+			if (user.name.toLowerCase().includes(searchQuery))
+				return user
+			if (user.nickName && user.nickName.toLowerCase().includes(searchQuery))
+				return user
+			if (_email.toLowerCase().includes(searchQuery))
+				return user
+		});
+	}
+	return [];
+});
+
+const onInput = () => {
+	showSuggestions.value = filteredUsers.value.length !== 0;
+};
+
+const addMember = (member) => {
+	if (!members.value.has(member.user_id)) {
+		member.permission_level = 'member'
+		members.value.set(member.user_id, member);
+	}
+	member_input.value = '';
+	showSuggestions.value = false;
+};
+
+const removeMember = (user_id) => {
+	members.value.delete(user_id)
 }
-const removeEmail = () => {
-  if (emails.value.length <= 1)
-    return;
-  emails.value.pop();
+
+const changePermission = (user_id, permission_level) => {
+	const _member = members.value.get(user_id)
+	_member.permission_level = permission_level
+	members.value.set(user_id, _member)
 }
 
 const createGroup = async () => {
-  if (groupName.value === '')
-    return alert('群組名稱不能為空');
+	if (groupName.value === '')
+		return alert('群組名稱不能為空');
 
-  const members = []
-  members.push({
-    id: user_id.value,
-    permission_level: 'admin'
-  })
-  
-  emails.value = [...new Set(emails.value)]
-  for (const email of emails.value) {
-    if (!email){
-      alert('成員 email 不得為空')
-      return;
-    }
-    const user = await getUserData(`email=${email}`)
-    if (user && user.data.user_id !== user_id.value) {
-      members.push({
-        id: user.data.user_id,
-        permission_level: 'member'
-      })
-    }
-  }
+	const _members = []
 
-  const groupData = {
-    name: groupName.value,
-    creator: user_id.value,
-    members
-  }
+	members.value.forEach((member, user_id) => {
+		_members.push({
+			id: user_id,
+			permission_level: member.permission_level
+		})
+	})
 
-  try {
-    const addedGroup = await addGroup(groupData)
-    for (const member of groupData.members) {
-      await updateUser(member.id, { joinedGroups: addedGroup._id });
-    }
-  
-    groupName.value = ''
-    emails.value = ['']
-    alert("新增群組成功")
-    router.push({path:'/groups'})
-  } catch (error) {
-    console.error('error: ', error)
-    alert("新增群組失敗")
-  }
+	const groupData = {
+		name: groupName.value,
+		creator: user_info.value.user_id,
+		members: _members
+	}
+	try {
+		const addedGroup = await addGroup(groupData)
+		for (const member of groupData.members) {
+			await updateUser(member.id, { joinedGroups: addedGroup._id });
+		}
+		groupName.value = ''
+		alert("新增群組成功")
+		router.push({ path: '/groups' })
+	} catch (error) {
+		console.error('error: ', error)
+		alert("新增群組失敗")
+	}
 }
 </script>
 
 <template>
-  <div class="group-container-wrapper">
-    <div class="group-container">
-        <h2 class="tab-title">新增群組</h2>
-        <div class="form-group">
-          <label for="groupName">群組名稱:</label>
-          <input v-model="groupName" id="groupName" type="text" placeholder="雄壯威武火力連" class="input-field" />
-        </div>
+	<div class="group-container">
+		<h2 class="tab-title">新增群組</h2>
+		<div class="form-group">
+			<label for="groupName">群組名稱:</label>
+			<input v-model="groupName" id="groupName" type="text" placeholder="輸入群組名稱..." class="input-field" />
+		</div>
+		<div class="member-container">
+			<section class="caption" :key="user_id">
+				<span class="img">頭像</span>
+				<span class="name">名稱</span>
+				<span class="email">email</span>
+				<span class="permission">權限</span>
+			</section>
+			<section v-for="[user_id, member] in members" class="member" :key="user_id">
+				<img :src="member.customImage || member.image || defaultAvatar" alt="">
+				<span class="name">{{ member.nickName || member.name }}</span>
+				<span class="email">{{ member.email }}</span>
 
-        <div v-for="(email, index) in emails" :key="index" class="form-group">
-          <label v-if="index == 0" :for="'email' + index">admin</label>
-          <label v-else :for="'email' + index">member {{ index }}:</label>
-          
-          <input v-if="index == 0" :id="'email' + index" type="email" :value="email" class="input-field" disabled/>
-          <input v-else v-model="emails[index]" :id="'email' + index" type="email" placeholder="輸入成員信箱" class="input-field" />
-        </div>
+				<select v-if="!member.readOnly" name="permission_level" id="" :value="member.permission_level"
+					@change="changePermission(user_id, $event.target.value)">
+					<option value="admin">admin</option>
+					<option value="order_manager">order_manager</option>
+					<option value="member">member</option>
+				</select>
+				<span v-else class="permission">{{ member.permission_level }}</span>
 
-        <div class="horizontal-container">
-          <button @click="addEmail" class="add-button button-style">新增成員</button>
-          <button @click="removeEmail" class="remove-button button-style">刪除成員</button>
-        </div>
-        <button @click="createGroup" class="submit-button button-style">送出</button>
-        <button @click="router.push({path:'/groups'})" class="remove-button button-style">取消</button>
-    </div>
-  </div>
+				<button v-if="!member.readOnly" class="delete-btn" @click="removeMember(user_id)">delete</button>
+			</section>
+		</div>
+
+		<input type="text" @input="onInput" class="member_input" v-model="member_input" placeholder="輸入成員...">
+		<span id="suggetion-anchor">
+			<section class="suggestion" v-if="showSuggestions">
+				<ul>
+					<li v-for="user in filteredUsers" :key="user.id" @click="addMember(user)">
+						<img :src="user.customImage || user.image || defaultAvatar" alt="">
+						<span class="name">{{ user.nickName || user.name }}</span>
+						<span class="email">{{ user.email }}</span>
+					</li>
+				</ul>
+			</section>
+		</span>
+
+		<button @click="createGroup" class="submit-button button-style">送出</button>
+		<button @click="router.push({ path: '/groups' })" class="remove-button button-style">取消</button>
+	</div>
+
 </template>
 
 
-<style scoped>
-  .group-container-wrapper{
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center
-  }
+<style>
+.group-container {
+	max-width: 80%;
+	margin: 0 auto;
+	padding: 20px;
+	background-color: #f9f9f9;
+	border-radius: 8px;
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
 
-  .group-container {
-    max-width: 500px;
-    width: 100%;
-    margin: 0 auto;
-    padding: 20px;
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  }
+.group-container h1 {
+	text-align: center;
+}
 
-  .group-container .horizontal-container{
-    display: flex;
-    justify-content: space-between;
-    gap: 6px;
-  }
+.group-container label {
+	display: block;
+	margin-bottom: 5px;
+	font-weight: bold;
+	color: #555;
+}
 
-  .tab-title{
-    padding-bottom: 20px;
-  }
 
-  .form-group {
-    margin-bottom: 15px;
-  }
+.input-field {
+	width: 100%;
+	padding: 10px;
+	font-size: 16px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	box-sizing: border-box;
+}
 
-  label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-    color: #555;
-  }
+.member-container {
+	width: 100%;
+	max-height: 300px;
+	overflow-y: auto;
+}
 
-  .input-field {
-    width: 100%;
-    padding: 10px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-sizing: border-box;
-  }
+.member-container section {
+	width: 100%;
+	display: grid;
+	grid-template-columns: 3rem 10rem 17rem 10rem 5rem;
+	align-items: center;
+	padding: 1rem;
+}
 
-  .button-style {
-    width: 100%;
-    padding: 10px;
-    font-size: 16px;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-top: 10px;
-  }
+.member-container section.caption>span {
+	text-align: left;
+	width: 100%;
+}
 
-  .add-button {background-color: #28a745;}
-  .add-button:hover {background-color: #218838;}
-  .remove-button {background-color: #dc3545;}
-  .remove-button:hover {background-color: #c82333;}
-  .submit-button {background-color: #007bff;}
-  .submit-button:hover {background-color: #0056b3;}
+.member-container section>span,
+.member-container section>select {
+	max-width: 15rem;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	text-align: left
+}
 
-  .group-item {
-    background-color: #e9ecef;
-    padding: 10px;
-    border-radius: 5px;
-    margin-bottom: 15px;
-  }
+.member-container section .delete-btn {
+	height: 100%;
+}
 
-  .group-item h3 {
-    margin: 0 0 5px 0;
-    color: #343a40;
-  }
+.member-container section .delete-btn:hover {
+	background: #007bff;
+}
 
-  .group-item p, .group-item ul {
-    margin: 5px 0;
-    color: #495057;
-  }
 
-  .group-item ul {
-    padding-left: 20px;
-  }
+.member_input {
+	width: 100%;
+	padding: 10px;
+	font-size: 16px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	box-sizing: border-box;
+}
+
+#suggetion-anchor {
+	position: relative;
+	display: block;
+	width: 100%;
+}
+
+#suggetion-anchor .suggestion {
+	position: absolute;
+	background-color: #f9f9f9;
+	border: 1px solid #ccc;
+	border-top: 0;
+	border-radius: 0 0 12px 12px;
+	width: 100%;
+	max-height: 300px;
+	top: 0;
+	left: 0;
+	padding: 1rem;
+}
+
+#suggetion-anchor .suggestion li {
+	display: grid;
+	grid-template-columns: 3rem 10rem 17rem 10rem 5rem;
+	align-items: center;	
+	max-height: 2rem;
+	list-style: none;
+}
+
+#suggetion-anchor .suggestion li:hover {
+	background-color: #ccc;
+}
+
+.member-container section img,
+#suggetion-anchor .suggestion img {
+	height: 2rem;
+	border-radius: 50%;
+	aspect-ratio: 1/1;
+	object-fit: cover;
+}
+
+.button-style {
+	width: 100%;
+	padding: 10px;
+	font-size: 16px;
+	color: #fff;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	margin-top: 10px;
+}
+
+.add-button {
+	background-color: #28a745;
+}
+
+.add-button:hover {
+	background-color: #218838;
+}
+
+.remove-button {
+	background-color: #dc3545;
+}
+
+.remove-button:hover {
+	background-color: #c82333;
+}
+
+.submit-button {
+	background-color: #007bff;
+}
+
+.submit-button:hover {
+	background-color: #0056b3;
+}
 </style>

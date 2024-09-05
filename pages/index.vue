@@ -55,8 +55,7 @@ onMounted(async () => {
 .index-wrapper {
 	width: 90%;
 	height: 100%;
-	margin-inline: auto;
-	padding-top: 1rem;
+	margin-inline: auto;	
 }
 
 .index-wrapper h1 {

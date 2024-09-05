@@ -1,9 +1,10 @@
 <script setup>
 import { ref } from 'vue'
-import { getUserData , updateUser } from '@/utils/users/userHandler'
-import { addGroup , getGroupData } from '@/utils/groups/groupHandler'
+import { getUserData , getUsersDataInGroup } from '@/utils/users/userHandler'
+import { addGroup , getGroupData} from '@/utils/groups/groupHandler'
 import { verify_credential } from '@/utils/auth/verifyHandler'
 import { date_output_format } from '@/utils/date/timeHandler'
+import AvatarCircles from '~/components/AvatarCircles.vue'
 
 
 const router = useRouter();
@@ -26,11 +27,13 @@ onMounted(async () => {
   // setting group data
   for (const group of joinedGroups) {
     const groupData = await getGroupData(`_id=${group}`)
-    const user_response = await getUserData(`user_id=${groupData.data[0].creator}`);
+    const groupMember_response = await getUsersDataInGroup(`group_id=${group}`)
+    const groupMemberData = groupMember_response.data
+    const user_response = await getUserData(`user_id=${groupData.data.creator}`);    
     const creator_name = user_response.data.nickName || user_response.data.name
-    groupDataList.value.push({...groupData.data[0], creator_name: creator_name})
+    groupDataList.value.push({...groupData.data, creator_name: creator_name , members:groupMemberData})
+    console.log(groupDataList.value)
   }
-
 })
 </script>
 
@@ -47,6 +50,7 @@ onMounted(async () => {
             <h3>{{ group.name }}</h3>
             <p>創建人: {{ group.creator_name }}</p>
             <p>創建時間: {{ date_output_format(group.createdAt) }}</p>
+            <AvatarCircles :members="group.members" :showNum="3"></AvatarCircles>
           </div>
         </div>
         <button @click="router.push({path:'/groups/create'})" class="add-button button-style">新增群組</button>
