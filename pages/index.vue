@@ -14,7 +14,7 @@
 				<div @click="router.push({path:'groups'})">
 					<p>查看群組</p>
 				</div>
-				<div @click="router.push({path:'order-history'})">
+				<div @click="router.push({path:'orders/order-history'})">
 					<p>歷史訂單</p>
 				</div>
 				<div @click="router.push({path:'profile'})">

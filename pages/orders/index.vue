@@ -5,24 +5,18 @@ import { getMenus } from '@/utils/menus/menuHandler';
 import { verify_credential } from '@/utils/auth/verifyHandler'
 import { useRouter } from '#app';
 import { updateGroupOrder } from '@/utils/groups/groupHandler';
+import { full_time_format } from '@/utils/date/timeHandler'
 
 const order = ref([])
 const user_id = ref('')
 const router = useRouter();
 const order_id = useState('order_id', () => '')
 
-async function getUserInfo() {
-  const data = await verify_credential()
-  if (!data) {
-    router.push('/login')
-  } else {
-    return data.user_id
-  }
-}
-user_id.value = await getUserInfo()
 
 onMounted(async() => {
     const data = await verify_credential()
+    if (!data) 
+        router.push('/login');
     user_id.value = data.user_id
     const user_info = await getUserData(`user_id=${user_id.value}`);
     const joinedGroups = user_info.data.joinedGroups;
@@ -30,31 +24,20 @@ onMounted(async() => {
     /////////////////// info 是可以給前端用的資訊
     for (const group of joinedGroups){
         const info = await getOrders(`group_id=${group}`);
-        for (const data of info.data){
-            Object.assign(data, {creator: await getCreatorName(data.creator_id)})
-            Object.assign(data, {priceRange: await getPriceRange(data.restaurant_id._id)})
-            if (data){
-                order.value.push(data)
-            } 
-        }    
+        for (const d of info.data){
+            order.value.push({
+                ...d,
+                creator: await getCreatorName(d.creator_id),
+                priceRange: await getPriceRange(d.restaurant_id._id)
+            })
+        }
     }
-    monitorOrderStatus(order.value)
 })
-
-function timeFormating(time) {
-    const date = new Date(time);
-    const timeString = date.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    const dateString = date.toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' });
-    
-    return `${dateString} ${timeString}`;
-}
-
 
 async function getCreatorName(id){
     const user_info = await getUserData(`user_id=${id}`);
-    return user_info.data.name
+    return user_info.data.name;
 }
-
 
 const getPriceRange = async (restaurantId) => {
     let minPrice = Infinity;
@@ -75,7 +58,7 @@ const getPriceRange = async (restaurantId) => {
     } catch(error){
         console.log(error)
     }
-  };
+};
 
 const toOrder = ( restaurant_id, orderID, status ) => {
     if ( status == 'Finished' ){
@@ -83,7 +66,7 @@ const toOrder = ( restaurant_id, orderID, status ) => {
         return
     }
     order_id.value = orderID;
-    router.push(`restaurants/${restaurant_id}`);
+    router.push(`/orders/${orderID}`);
 }
 
 
@@ -144,7 +127,7 @@ const close_order = async (ID, status, group_id) => {
                 </section>
                 <section class="info">
                     <span>價格: {{ item.priceRange }}</span>
-                    <span>截止時間: {{ timeFormating(item.order_lock_time) }}</span>
+                    <span>截止時間: {{ full_time_format(item.order_lock_time) }}</span>
                 </section>
             </div>
         <h1 class="error-msg">新增其他訂單</h1>
