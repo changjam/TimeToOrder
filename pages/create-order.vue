@@ -4,6 +4,7 @@ import { getUserData } from '@/utils/users/userHandler'
 import { verify_credential } from '@/utils/auth/verifyHandler'
 import { getGroupByUserID } from '@/utils/Common'
 import { addOrder } from '@/utils/order/orderHandler'
+import { getGroupData } from '@/utils/groups/groupHandler'
 
 const today = new Date().toISOString().substr(0, 10) + "T00:00:00"
 const restaurant_select = ref({ id: 0 })
@@ -47,11 +48,15 @@ onMounted(async () => {
         router.push('/login')
     }
     user_info.value = await getUserData(`user_id=${data.user_id}`)
+    const joinedGroups = user_info.value.data.joinedGroups
     user_info.value = user_info.value.data
-    // 獲得使用者群組
-    groupDataList.value = await getGroupByUserID(user_info.value)
-    groupDataList.value = groupDataList.value[0]
-    console.log(groupDataList.value)
+    for (const group of joinedGroups) {
+        const groupData = await getGroupData(`_id=${group}`)
+        const user_response = await getUserData(`user_id=${groupData.data[0].creator}`);
+        const creator_name = user_response.data.nickName || user_response.data.name
+        groupDataList.value.push({ ...groupData.data[0], creator_name: creator_name })
+    }
+
     // 獲得餐廳
     restaurants.value = await getRestaurant();
 })
@@ -77,6 +82,10 @@ const CreateOrder = async () => {
         window.alert("請選擇截止時間")
         return
     }
+    if (startTime_select.value >= endTime_select.value) {
+        window.alert("開始時間必須小於截止時間")
+        return
+    }
 
     const orderData = {
         order_name: orderName_input.value,
@@ -85,15 +94,12 @@ const CreateOrder = async () => {
         order_lock_time: endTime_select.value,
         creator_id: user_info.value.user_id,
         group_id: group_select.value._id,
-        status: "Available",
         notes: notes_input.value,
     };
 
-    console.log(orderData)
 
     try {
         await addOrder(orderData);
-        console.log("orderData:", orderData)
         alert('訂單創建成功!');
     } catch (error) {
         console.error('Error creating order:', error);
@@ -136,7 +142,7 @@ const CreateOrder = async () => {
                     <div class="restaurant-info">
                         <h2>{{ group.name }}</h2>
                         <p><strong>成員人數:</strong> {{ group.members.length }}</p>
-                        <p><strong>建立時間:</strong> {{ new Date(group.created_at).toLocaleString() }}</p>
+                        <p><strong>建立時間:</strong> {{ new Date(group.createdAt).toLocaleString() }}</p>
                     </div>
                 </div>
             </main>
