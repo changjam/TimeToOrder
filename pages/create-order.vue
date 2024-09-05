@@ -142,7 +142,7 @@ const CreateOrder = async () => {
                     <div class="restaurant-info">
                         <h2>{{ group.name }}</h2>
                         <p><strong>成員人數:</strong> {{ group.members.length }}</p>
-                        <p><strong>建立時間:</strong> {{ new Date(group.created_at).toLocaleString() }}</p>
+                        <p><strong>建立時間:</strong> {{ new Date(group.createdAt).toLocaleString() }}</p>
                     </div>
                 </div>
             </main>
