@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue'
-import { getUserData, updateUser, getAllUserData } from '@/utils/users/userHandler'
+import { getUserData, updateUser, getAllUsers } from '@/utils/users/userHandler'
 import { addGroup, getGroupData } from '@/utils/groups/groupHandler'
 import { verify_credential } from '@/utils/auth/verifyHandler'
 import defaultAvatar from '~/assets/images/plate_black.svg'
@@ -23,7 +23,7 @@ onMounted(async () => {
 	user_info.value = await getUserData(`user_id=${data.user_id}`)
 	user_info.value = user_info.value.data
 
-	allUser.value = await getAllUserData()
+	allUser.value = await getAllUsers()
 	allUser.value = allUser.value.data
 
 	let _group_creator = user_info.value
@@ -54,10 +54,10 @@ const onInput = () => {
 };
 
 const addMember = (member) => {
-	if(!members.value.has(member.user_id)){
+	if (!members.value.has(member.user_id)) {
 		member.permission_level = 'member'
 		members.value.set(member.user_id, member);
-	}	
+	}
 	member_input.value = '';
 	showSuggestions.value = false;
 };
@@ -89,7 +89,7 @@ const createGroup = async () => {
 		name: groupName.value,
 		creator: user_info.value.user_id,
 		members: _members
-	}	
+	}
 	try {
 		const addedGroup = await addGroup(groupData)
 		for (const member of groupData.members) {
@@ -113,6 +113,12 @@ const createGroup = async () => {
 			<input v-model="groupName" id="groupName" type="text" placeholder="輸入群組名稱..." class="input-field" />
 		</div>
 		<div class="member-container">
+			<section class="caption" :key="user_id">
+				<span class="img">頭像</span>
+				<span class="name">名稱</span>
+				<span class="email">email</span>
+				<span class="permission">權限</span>
+			</section>
 			<section v-for="[user_id, member] in members" class="member" :key="user_id">
 				<img :src="member.customImage || member.image || defaultAvatar" alt="">
 				<span class="name">{{ member.nickName || member.name }}</span>
@@ -190,18 +196,23 @@ const createGroup = async () => {
 .member-container section {
 	width: 100%;
 	display: grid;
-	grid-template-columns: 2rem 10rem 20rem 10rem 5rem;
+	grid-template-columns: 3rem 10rem 17rem 10rem 5rem;
 	align-items: center;
-	justify-content: space-between;
 	padding: 1rem;
 }
 
-.member-container section .email,
-.member-container section .name {
+.member-container section.caption>span {
+	text-align: left;
+	width: 100%;
+}
+
+.member-container section>span,
+.member-container section>select {
 	max-width: 15rem;
 	white-space: nowrap;
 	text-overflow: ellipsis;
 	overflow: hidden;
+	text-align: left
 }
 
 .member-container section .delete-btn {
@@ -242,9 +253,9 @@ const createGroup = async () => {
 }
 
 #suggetion-anchor .suggestion li {
-	display: flex;
-	align-items: center;
-	gap: 1rem;
+	display: grid;
+	grid-template-columns: 3rem 10rem 17rem 10rem 5rem;
+	align-items: center;	
 	max-height: 2rem;
 	list-style: none;
 }
