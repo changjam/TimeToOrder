@@ -48,7 +48,7 @@ export async function deleteGroupData(data){
 
 export async function updateGroupMember(data) {
     try {
-        const response = await fetch('/api/groups/put', {
+        const response = await fetch('/api/groups/put_all_group', {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -78,6 +78,26 @@ export async function updateSingleMember(data) {
         return result;
     } catch (error) {
         console.error('Error removing group member:', error);
+        return { success: false, error };
+    }
+}
+
+// groupHandler.js
+
+export async function updateGroupOrder(data) {
+    try {
+        const response = await fetch('/api/groups/put_history', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        });
+
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error('Error updating group historical order IDs:', error);
         return { success: false, error };
     }
 }

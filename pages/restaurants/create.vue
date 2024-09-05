@@ -120,7 +120,6 @@
                 const base64Image = reader.result
                 const filename = file.name
                 const result = await getMenuByImage(filename, base64Image)
-                console.log(result)
             }
             reader.readAsDataURL(file)
         } 

@@ -10,9 +10,9 @@ export async function addOrder(data) {
   }
 
 
-export async function getOrders(groupId) {
+export async function getOrders(info) {
   try {
-    const { data, error } = await useFetch(`/api/orders/get?group_id=${groupId}`, {
+    const { data, error } = await useFetch(`/api/orders/get?${info}`, {
       method: 'GET',
     });
 

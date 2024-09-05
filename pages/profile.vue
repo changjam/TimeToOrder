@@ -58,7 +58,6 @@ function check_nickName_format() {
 
 async function updateUserInfo() {
   const updates = {}
-  console.log
   if (nickName.value !== origin_status.nickName) {
     if (check_nickName_format())
       updates.nickName = nickName.value

@@ -41,9 +41,9 @@ onMounted(async () => {
 });
 
 // 後續處理...
-// onBeforeUnmount(() => {
-//   order_id.value = ''
-// })
+onBeforeUnmount(() => {
+  order_id.value = ''
+})
 
 const goBack = () => {
   router.push('/restaurants');
@@ -96,6 +96,12 @@ const ordering = async () => {
 
   if (!orders.length){
     alert('請選擇餐點');
+    return
+  }
+
+  if (!order_id.value){
+    alert('請先至訂單頁面選擇訂單')
+    router.push('/order')
     return
   }
   const orderDetails = {
