@@ -52,9 +52,9 @@ onMounted(async () => {
     user_info.value = user_info.value.data
     for (const group of joinedGroups) {
         const groupData = await getGroupData(`_id=${group}`)
-        const user_response = await getUserData(`user_id=${groupData.data[0].creator}`);
+        const user_response = await getUserData(`user_id=${groupData.data.creator}`);
         const creator_name = user_response.data.nickName || user_response.data.name
-        groupDataList.value.push({ ...groupData.data[0], creator_name: creator_name })
+        groupDataList.value.push({ ...groupData.data, creator_name: creator_name })
     }
 
     // 獲得餐廳
