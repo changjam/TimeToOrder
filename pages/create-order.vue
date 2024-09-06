@@ -148,7 +148,7 @@ const CreateOrder = async () => {
             </main>
 
             <main v-if="currentState == State.time" class="time-container">
-                <label for="orderName">開始時間</label>
+                <label for="orderName">訂單名稱</label>
                 <input type="text" v-model="orderName_input" id="orderName" placeholder="輸入訂單名稱...">
                 <label for="start_at">開始時間</label>
                 <input type="datetime-local" v-model="startTime_select" name="" id="start_at" :min="today">

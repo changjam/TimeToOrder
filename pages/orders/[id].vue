@@ -4,21 +4,23 @@ import { getMenus, classifyDishes } from '@/utils/menus/menuHandler';
 import { useRoute, useRouter } from '#app';
 import { getUserData } from '@/utils/users/userHandler'
 import { verify_credential } from '@/utils/auth/verifyHandler'
+import { getOrders } from '@/utils/order/orderHandler'
 import { updateOrder } from '~/utils/order/orderHandler';
 
 const route = useRoute();
 const router = useRouter();
 
-// const _id = route.fullPath.match(/\/restaurants\/(.+)?/)[1];
 const menu_data = ref(null);
-// const classifiedMenu = ref({});
 const classifiedDishes = ref(null)
-// var categories = ref(null);
-const order_id = useState('order_id')
+const order_id = ref('');
 const user_info = ref('')
 const categories = ref(null);
 const userOrder = ref({});
-const orderResult = ref(null);
+const orderResult = ref({});
+
+const goBack = () => {
+  router.push('/orders');
+};
 
 onMounted(async () => {
   const data = await verify_credential()
@@ -27,13 +29,19 @@ onMounted(async () => {
 
   const user_id = data.user_id
   user_info.value = await getUserData(`user_id=${user_id}`);
-  const restaurant_id = route.fullPath.match(/\/restaurants\/(.+)/)[1];
+  order_id.value = route.fullPath.match(/\/orders\/(.+)/)[1];
+
+  const order_data = await getOrders(`_id=${order_id.value}`);
+  const restaurant_id = order_data.data[0].restaurant_id._id;
+  
   await fetchMenus(restaurant_id);
+  orderResult.value = order_data.data[0].orders.filter((order)=> order.user_id === user_id)[0];
+  console.log(orderResult.value)
 });
 
 const isChanged = computed(() => {
   for (const [key, dish] of Object.entries(userOrder.value)) {
-    const { amount, remark } = dish;
+    const { amount } = dish;
     if(amount)
       return true
   }
@@ -49,21 +57,10 @@ const fetchMenus = async (restaurantId) => {
         const { _id, ...data } = dish;
         userOrder.value[_id] = {...data, amount: 0, remark: ""};
       })
-
     }catch(error) {
       console.error(error)
     }
 };
-
-// 後續處理...
-onBeforeUnmount(() => {
-  order_id.value = ''
-})
-
-const goBack = () => {
-  router.push('/restaurants');
-};
-
 
 const send_order = async () => {
   if (!isChanged)
@@ -82,14 +79,17 @@ const send_order = async () => {
     total += dish.amount * dish.price;
     orderDetails.orderedItems.push({
       name: dish.name,
-      amount: dish.amount
+      price: dish.price,
+      amount: dish.amount,
+      remark: dish.remark
     });
   }
   orderDetails.totalAmount = total;
 
   try{
     await updateOrder(order_id.value, orderDetails, user_info.value.data.user_id)
-    alert("訂單已送出") 
+    alert("訂單已送出")
+    location.reload()
   }catch(error){
     console.log(error)
     alert("訂單送出失敗")
@@ -145,6 +145,7 @@ const send_order = async () => {
           </tbody>
         </table>
       </div>
+
       <div class="result-wrapper">
         <h2 class="header-title">訂購資訊</h2>
         <table>
@@ -156,8 +157,32 @@ const send_order = async () => {
               <th scope="col" class="remark">備註</th>
             </tr>
           </thead>
-        {{ userOrder }}
-          <tbody ref="orderResult">
+
+          <tbody class="result-wrapper-body" v-if="orderResult">
+            <template v-for="(item, index) in orderResult.orderedItems" :key="index">
+              <tr>
+                <td>
+                  <h3>
+                    {{ item.name }}
+                  </h3>
+                </td>
+                <td>
+                  <h3>
+                    {{ item.price }}
+                  </h3>
+                </td>
+                <td>
+                  <h3>
+                    {{ item.amount }}
+                  </h3>
+                </td>
+                <td>
+                  <h3>
+                    {{ item.remark }}
+                  </h3>
+                </td>
+              </tr>
+            </template>
           </tbody>
         </table>
       </div>
@@ -255,6 +280,9 @@ const send_order = async () => {
 
 .result-wrapper {
     width: 100%;
+}
+.result-wrapper .result-wrapper-body{
+  text-align: center;
 }
 
 button:hover {
