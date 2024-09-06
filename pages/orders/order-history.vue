@@ -21,14 +21,13 @@ onMounted(async () => {
     const joinedGroups = user_info.value.joinedGroups
     for (const group of joinedGroups) {
         const groupData = await getGroupData(`_id=${group}`)
-        groupDataList.value.push( groupData.data[0] )
+        groupDataList.value.push( groupData.data )
     }
-
     for (const group of groupDataList.value) {
-        group.historicalOrderIds.filter(async (order_id) => {
-            const info = await getOrders(`_id=${order_id}`);
-            order_history.value.push(info.data[0])
-        })
+      group.historicalOrderIds.filter(async (order_id) => {
+          const info = await getOrders(`_id=${order_id}`);
+          order_history.value.push(info.data[0])
+      })
     }
 })
 </script>

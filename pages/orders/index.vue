@@ -62,7 +62,7 @@ const getPriceRange = async (restaurantId) => {
 
 const toOrder = ( restaurant_id, orderID, status ) => {
     if ( status == 'Finished' ){
-        router.push('order-history');
+        router.push('orders/order-history');
         return
     }
     order_id.value = orderID;
