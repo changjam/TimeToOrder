@@ -45,6 +45,24 @@ export async function updateOrder(orderId, orders, userId) {
   }
 }
 
+export async function deleteSingleOrder(orderId, userId) {
+  try {
+      const response = await fetch('/api/orders/delete_single_order', {
+          method: 'PUT',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ orderId, userId }),
+      });
+
+      const result = await response.json();
+      return result;
+  } catch (error) {
+      console.error('刪除特定訂單失敗:', error);
+      return { success: false, error };
+  }
+}
+
 
 export async function updateStatus(data) {
   try {
@@ -61,5 +79,32 @@ export async function updateStatus(data) {
   } catch (error) {
       console.error('Error updating order status:', error);
       return { success: false, error };
+  }
+}
+
+export async function check_status(order) {
+  const now = new Date().toISOString();
+  const { _id, status, order_open_time, order_lock_time } = order;
+  if (now < order_open_time){
+      if (status === 'Available'){
+          await updateStatus({orderId: _id , Status: 'Locked'})
+          return order;
+      }else if (status === 'Locked'){
+          return order;
+      }
+  }
+  else if (now >= order_lock_time){
+      if (status === 'Available')
+          await updateStatus({orderId: _id , Status: 'Locked'})
+  }
+  else if (now >= order_open_time && now < order_lock_time){
+      if (status === 'Available'){
+          return order;
+      }else if (status === 'Locked'){
+          await updateStatus({orderId: _id , Status: 'Available'})
+          return order;
+      }
+  }else{
+      return order;
   }
 }

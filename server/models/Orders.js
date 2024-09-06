@@ -8,7 +8,15 @@ const OrderSchema = new mongoose.Schema({
   creator_id: { type: String , required: true },
   restaurant_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Restaurants', required: true },
   group_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Groups', required: true },
-  orders: [],
+  orders: [
+    {
+      name: { type: String, required: true },
+      totalAmount: { type: Number, required: true},
+      orderedItems: { type: Array, required: true },
+      user_id: { type: String, required: true },
+      orderTime: { type: Date, default: Date.now, required: true }
+    }
+],
   status: {
     type: String,
     enum: ['Available', 'Locked', 'In_Progress', 'Finished', 'Canceled'],
