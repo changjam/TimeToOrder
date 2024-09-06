@@ -24,12 +24,13 @@ onMounted(async () => {
         groupDataList.value.push( groupData.data )
     }
     for (const group of groupDataList.value) {
-      group.historicalOrderIds.filter(async (order_id) => {
-          const info = await getOrders(`_id=${order_id}`);
-          if (info.data[0]){
-            order_history.value.push(info.data[0])
-          }
-      })
+      group.historicalOrderIds.forEach(async (order_id) => {
+        const info = await getOrders(`_id=${order_id}`);
+        const [order] = info.data;
+        if (order) {
+          order_history.value.push(order);
+        }
+      });
     }
 })
 </script>
