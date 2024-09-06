@@ -14,6 +14,7 @@ const user_role = ref(null)
 const user_info = ref(null)
 const members_info = ref([])
 const memberEmail = ref('')
+const group_id = useState('group_id', () => '')
 
 onMounted(async () => {
   const data = await verify_credential()
@@ -22,8 +23,7 @@ onMounted(async () => {
   const uid = data.user_id;
   const gid = route.path.split("/").slice(-1)[0];
   const group_data = await getGroupData(`_id=${gid}`);
-  group_info.value = group_data.data[0];
-
+  group_info.value = group_data.data;
   user_info.value = group_info.value.members.filter(member_obj => member_obj.id == uid)[0]
   if (!user_info.value)
     router.push('/groups')
@@ -128,6 +128,11 @@ async function deleteMember(email,members,group_id){
   }
 }
 
+function initiate_order(groupID){
+  group_id.value = groupID
+  router.push('/create-order')
+}
+
 </script>
 
 <template>
@@ -171,7 +176,7 @@ async function deleteMember(email,members,group_id){
           <button @click="deleteMember(memberEmail,members_info,group_info._id)" class="remove-button button-style">刪除成員</button>
         </div>
       </div>
-      <button v-if="user_info.permission_level == 'admin'" @click="" class="submit-button button-style">發起訂單</button>
+      <button v-if="user_info.permission_level == 'admin'" @click="initiate_order(group_info._id)" class="submit-button button-style">發起訂單</button>
     </div>
   </div>
 </template>

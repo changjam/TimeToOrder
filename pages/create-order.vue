@@ -57,6 +57,9 @@ onMounted(async () => {
         groupDataList.value.push({ ...groupData.data, creator_name: creator_name })
     }
 
+    const group_id = useState('group_id')
+    group_select.value._id = group_id.value
+
     // 獲得餐廳
     restaurants.value = await getRestaurant();
 })
@@ -97,7 +100,7 @@ const CreateOrder = async () => {
         notes: notes_input.value,
     };
 
-
+    group_id.value = ''
     try {
         await addOrder(orderData);
         alert('訂單創建成功!');

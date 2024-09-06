@@ -32,7 +32,6 @@ onMounted(async () => {
     const user_response = await getUserData(`user_id=${groupData.data.creator}`);    
     const creator_name = user_response.data.nickName || user_response.data.name
     groupDataList.value.push({...groupData.data, creator_name: creator_name , members:groupMemberData})
-    console.log(groupDataList.value)
   }
 })
 </script>
