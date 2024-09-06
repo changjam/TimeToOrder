@@ -5,8 +5,9 @@ import { verify_credential } from '@/utils/auth/verifyHandler'
 import { getGroupByUserID } from '@/utils/Common'
 import { addOrder } from '@/utils/order/orderHandler'
 import { getGroupData } from '@/utils/groups/groupHandler'
+import { getFormattedUTCTime } from '@/utils/date/timeHandler'
 
-const today = new Date().toISOString().substr(0, 10) + "T00:00:00"
+const today = getFormattedUTCTime()
 const restaurant_select = ref({ id: 0 })
 const group_select = ref({ id: 0 })
 const startTime_select = ref()
@@ -44,9 +45,9 @@ const restaurants = ref([]);
 
 onMounted(async () => {
     const data = await verify_credential()
-    if (!data) {
+    if (!data)
         router.push('/login')
-    }
+
     user_info.value = await getUserData(`user_id=${data.user_id}`)
     const joinedGroups = user_info.value.data.joinedGroups
     user_info.value = user_info.value.data
@@ -57,8 +58,8 @@ onMounted(async () => {
         groupDataList.value.push({ ...groupData.data, creator_name: creator_name })
     }
 
-    const group_id = useState('group_id')
-    group_select.value._id = group_id.value
+    // const group_id = useState('group_id')
+    // group_select.value._id = group_id.value
 
     // 獲得餐廳
     restaurants.value = await getRestaurant();
@@ -100,10 +101,10 @@ const CreateOrder = async () => {
         notes: notes_input.value,
     };
 
-    group_id.value = ''
+    // group_id.value = ''
     try {
         await addOrder(orderData);
-        alert('訂單創建成功!');
+        router.push('/orders')
     } catch (error) {
         console.error('Error creating order:', error);
         alert('訂單創建失敗.');
