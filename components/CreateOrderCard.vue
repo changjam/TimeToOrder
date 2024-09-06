@@ -11,6 +11,9 @@ const router = useRouter();
 
 <style>
 #createOrderCard {
+    display: flex;
+    justify-content: center;
+
     position: relative;
     overflow: hidden;
     z-index: 0;
