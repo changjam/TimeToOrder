@@ -36,7 +36,6 @@ onMounted(async () => {
   
   await fetchMenus(restaurant_id);
   orderResult.value = order_data.data[0].orders.filter((order)=> order.user_id === user_id)[0];
-  console.log(orderResult.value)
 });
 
 const isChanged = computed(() => {
@@ -77,15 +76,16 @@ const send_order = async () => {
   let total = 0;
   for (const [key, dish] of Object.entries(userOrder.value)){
     total += dish.amount * dish.price;
-    orderDetails.orderedItems.push({
-      name: dish.name,
-      price: dish.price,
-      amount: dish.amount,
-      remark: dish.remark
-    });
+    if (dish.amount > 0){
+      orderDetails.orderedItems.push({
+        name: dish.name,
+        price: dish.price,
+        amount: dish.amount,
+        remark: dish.remark
+      });
+    }
   }
   orderDetails.totalAmount = total;
-
   try{
     await updateOrder(order_id.value, orderDetails, user_info.value.data.user_id)
     alert("訂單已送出")

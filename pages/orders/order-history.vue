@@ -26,7 +26,9 @@ onMounted(async () => {
     for (const group of groupDataList.value) {
       group.historicalOrderIds.filter(async (order_id) => {
           const info = await getOrders(`_id=${order_id}`);
-          order_history.value.push(info.data[0])
+          if (info.data[0]){
+            order_history.value.push(info.data[0])
+          }
       })
     }
 })
