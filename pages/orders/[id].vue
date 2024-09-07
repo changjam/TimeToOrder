@@ -2,18 +2,20 @@
 import { ref, onMounted , onBeforeUnmount } from 'vue';
 import { getMenus, classifyDishes } from '@/utils/menus/menuHandler';
 import { useRoute, useRouter } from '#app';
-import { getUserData } from '@/utils/users/userHandler'
-import { verify_credential } from '@/utils/auth/verifyHandler'
-import { getOrders } from '@/utils/order/orderHandler'
-import { updateOrder } from '~/utils/order/orderHandler';
+import { getUserData } from '@/utils/users/userHandler';
+import { verify_credential } from '@/utils/auth/verifyHandler';
+import { getOrders } from '@/utils/order/orderHandler';
+import { updateOrder, deleteSingleOrder, check_status } from '@/utils/order/orderHandler';
+import { getFormattedUTCTime } from '@/utils/date/timeHandler';
 
 const route = useRoute();
 const router = useRouter();
 
 const menu_data = ref(null);
-const classifiedDishes = ref(null)
+const classifiedDishes = ref(null);
+const order_info = ref([]);
 const order_id = ref('');
-const user_info = ref('')
+const user_info = ref('');
 const categories = ref(null);
 const userOrder = ref({});
 const orderResult = ref({});
@@ -25,18 +27,28 @@ const goBack = () => {
 onMounted(async () => {
   const data = await verify_credential()
   if (!data) 
-    router.push('/login');
+    return router.push('/login');
 
   const user_id = data.user_id
   user_info.value = await getUserData(`user_id=${user_id}`);
   order_id.value = route.fullPath.match(/\/orders\/(.+)/)[1];
 
-  const order_data = await getOrders(`_id=${order_id.value}`);
-  const restaurant_id = order_data.data[0].restaurant_id._id;
+  order_info.value = await getOrders(`_id=${order_id.value}`);
+  await check_order_status();
   
+  const restaurant_id = order_info.value.data[0].restaurant_id._id;
   await fetchMenus(restaurant_id);
-  orderResult.value = order_data.data[0].orders.filter((order)=> order.user_id === user_id)[0];
+  orderResult.value = order_info.value.data[0].orders.filter((order)=> order.user_id === user_id)[0];
 });
+
+async function check_order_status(){
+  const _res = await check_status(order_info.value.data[0]);
+  if (!_res){
+    alert('訂單狀態有誤');
+    router.push('/orders');
+    return; 
+  }
+}
 
 const isChanged = computed(() => {
   for (const [key, dish] of Object.entries(userOrder.value)) {
@@ -62,6 +74,7 @@ const fetchMenus = async (restaurantId) => {
 };
 
 const send_order = async () => {
+  await check_order_status();
   if (!isChanged)
     return;
 
@@ -69,8 +82,7 @@ const send_order = async () => {
     name: user_info.value.data.name,
     totalAmount: NaN,
     orderedItems: [],
-    user_id: user_info.value.data.user_id,
-    orderTime: new Date().toLocaleString()
+    user_id: user_info.value.data.user_id  
   }
 
   let total = 0;
@@ -88,11 +100,25 @@ const send_order = async () => {
   orderDetails.totalAmount = total;
   try{
     await updateOrder(order_id.value, orderDetails, user_info.value.data.user_id)
-    alert("訂單已送出")
     location.reload()
   }catch(error){
-    console.log(error)
+    console.error(error)
     alert("訂單送出失敗")
+  }
+}
+
+const clear_order = async () => {
+  await check_order_status();
+  const userConfirmed = confirm('確定刪除?');
+
+  if (!userConfirmed)
+    return;
+  
+  try{
+    await deleteSingleOrder(order_id.value, user_info.value.data.user_id)
+    location.reload()
+  }catch(error){
+    console.error(error)
   }
 }
 </script>
@@ -183,6 +209,11 @@ const send_order = async () => {
                 </td>
               </tr>
             </template>
+            <tr class="send-btn-container" v-if="orderResult">
+              <th colspan="4">
+                <button class="send-btn" @click="clear_order">刪除訂單</button>
+              </th>
+            </tr>
           </tbody>
         </table>
       </div>

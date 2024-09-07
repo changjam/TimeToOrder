@@ -48,7 +48,6 @@ async function deleteGroup(group_id){
   try {
       await deleteGroupData({ _id: group_id });
       await updateUserGroupID({ joinedGroups: group_id })
-      alert('成功刪除');
       location.reload();
   } catch (error) {
       console.error('Error deleting group:', error);
@@ -130,7 +129,7 @@ async function deleteMember(email,members,group_id){
 
 function initiate_order(groupID){
   group_id.value = groupID
-  router.push('/create-order')
+  router.push('/orders/create-order')
 }
 
 </script>
