@@ -6,14 +6,14 @@ import { getUserData } from '@/utils/users/userHandler';
 import { verify_credential } from '@/utils/auth/verifyHandler';
 import { getOrders } from '@/utils/order/orderHandler';
 import { updateOrder, deleteSingleOrder, check_status } from '@/utils/order/orderHandler';
-import { getFormattedUTCTime } from '@/utils/date/timeHandler';
+import { getFormattedUTCTime, full_time_format } from '@/utils/date/timeHandler';
 
 const route = useRoute();
 const router = useRouter();
 
 const menu_data = ref(null);
 const classifiedDishes = ref(null);
-const order_info = ref([]);
+const order_info = ref(null);
 const order_id = ref('');
 const user_info = ref('');
 const categories = ref(null);
@@ -33,16 +33,16 @@ onMounted(async () => {
   user_info.value = await getUserData(`user_id=${user_id}`);
   order_id.value = route.fullPath.match(/\/orders\/(.+)/)[1];
 
-  order_info.value = await getOrders(`_id=${order_id.value}`);
+  order_info.value = await getOrders(`_id=${order_id.value}`).then((res)=> res.data[0]);
   await check_order_status();
-  
-  const restaurant_id = order_info.value.data[0].restaurant_id._id;
+
+  const restaurant_id = order_info.value.restaurant_id._id;
   await fetchMenus(restaurant_id);
-  orderResult.value = order_info.value.data[0].orders.filter((order)=> order.user_id === user_id)[0];
+  orderResult.value = order_info.value.orders.filter((order)=> order.user_id === user_id)[0];
 });
 
 async function check_order_status(){
-  const _res = await check_status(order_info.value.data[0]);
+  const _res = await check_status(order_info.value);
   if (!_res){
     alert('訂單狀態有誤');
     router.push('/orders');
@@ -61,10 +61,10 @@ const isChanged = computed(() => {
 
 const fetchMenus = async (restaurantId) => {
     try {
-      menu_data.value = await getMenus(`restaurant=${restaurantId}`);
-      classifiedDishes.value = classifyDishes(menu_data.value.data);
+      menu_data.value = await getMenus(`restaurant=${restaurantId}`).then((res)=> res.data);
+      classifiedDishes.value = classifyDishes(menu_data.value);
       categories.value = Object.keys(classifiedDishes.value);
-      menu_data.value.data.forEach((dish)=>{
+      menu_data.value.forEach((dish)=>{
         const { _id, ...data } = dish;
         userOrder.value[_id] = {...data, amount: 0, remark: ""};
       })
@@ -79,7 +79,7 @@ const send_order = async () => {
     return;
 
   const orderDetails = {
-    name: user_info.value.data.name,
+    name: user_info.value.data.nickName || user_info.value.data.name,
     totalAmount: NaN,
     orderedItems: [],
     user_id: user_info.value.data.user_id  
@@ -125,103 +125,204 @@ const clear_order = async () => {
 
 
 <template>
-    <div class="restaurant-wrapper">
-      <div class="menu-wrapper">
-        <h2 class="header-title">菜單</h2>
-        <table>
-          <thead>
-            <tr>
-              <th scope="col" class="name"><h3>餐點</h3></th>
-              <th scope="col" class="price"><h3>價錢</h3></th>
-              <th scope="col" class="amount"><h3>數量</h3></th>
-              <th scope="col" class="remark"><h3>備註</h3></th>
-            </tr>
-          </thead>
-          <tbody v-if="menu_data">
-            <template v-for="category, idx_1 in categories" :key="idx_1">
-              <tr class="dish-category">
-                <th colspan="4">
-                  <h3 class="text">{{ category }}</h3>
-                </th>
-              </tr>
-              <tr class="dish-list" v-for="dish, idx_2 in classifiedDishes[category]" :key="idx_2">
-                <td class="field name">
-                  <h3>
-                    {{ dish.name }}
-                  </h3>
-                </td>
-                <td class="field price">
-                  <h3>
-                    {{ dish.price }}
-                  </h3>
-                </td>
-                <td class="field amount">
-                  <input class="input-field" type="number" v-model="userOrder[dish._id].amount" min="0">
-                </td>
-                <td class="field remark">
-                  <input class="input-field" type="text" v-model="userOrder[dish._id].remark">
-                </td>
-              </tr>
-            </template>
-            <tr class="send-btn-container" v-if="isChanged">
-              <th colspan="4">
-                <button class="send-btn" @click="send_order">送出</button>
-              </th>
-            </tr>
-          </tbody>
-        </table>
+  <div class="order-header" v-if="order_info">
+    <div class="title-container">
+      <h1 class="order-title">{{ order_info.order_name }} <span class="separator">｜</span> {{ order_info.restaurant_id.name }}</h1>
+    </div>
+    <div class="order-info">
+      <div class="info-item">
+        <h2 class="info-label">發起人:</h2>
+        <span class="info-text">{{ order_info.creator_name }}</span>
       </div>
-
-      <div class="result-wrapper">
-        <h2 class="header-title">訂購資訊</h2>
-        <table>
-          <thead>
-            <tr>
-              <th scope="col" class="name">餐點</th>
-              <th scope="col" class="price">價錢</th>
-              <th scope="col" class="amount">數量</th>
-              <th scope="col" class="remark">備註</th>
-            </tr>
-          </thead>
-
-          <tbody class="result-wrapper-body" v-if="orderResult">
-            <template v-for="(item, index) in orderResult.orderedItems" :key="index">
-              <tr>
-                <td>
-                  <h3>
-                    {{ item.name }}
-                  </h3>
-                </td>
-                <td>
-                  <h3>
-                    {{ item.price }}
-                  </h3>
-                </td>
-                <td>
-                  <h3>
-                    {{ item.amount }}
-                  </h3>
-                </td>
-                <td>
-                  <h3>
-                    {{ item.remark }}
-                  </h3>
-                </td>
-              </tr>
-            </template>
-            <tr class="send-btn-container" v-if="orderResult">
-              <th colspan="4">
-                <button class="send-btn" @click="clear_order">刪除訂單</button>
-              </th>
-            </tr>
-          </tbody>
-        </table>
+      <div class="info-item">
+        <h2 class="info-label">訂餐時間:</h2>
+        <span class="info-text">{{ full_time_format(order_info.order_open_time) }} - {{ full_time_format(order_info.order_lock_time) }}</span>
+      </div>
+      <div class="info-item">
+        <h2 class="info-label">訂餐狀態:</h2>
+        <span class="info-text">{{ order_info.status }}</span>
       </div>
     </div>
-  </template>
+  </div>
+
+  <div class="restaurant-wrapper">
+    <div class="menu-wrapper">
+      <h2 class="header-title">菜單</h2>
+      <table>
+        <thead>
+          <tr>
+            <th scope="col" class="name"><h3>餐點</h3></th>
+            <th scope="col" class="price"><h3>價錢</h3></th>
+            <th scope="col" class="amount"><h3>數量</h3></th>
+            <th scope="col" class="remark"><h3>備註</h3></th>
+          </tr>
+        </thead>
+        <tbody v-if="menu_data">
+          <template v-for="category, idx_1 in categories" :key="idx_1">
+            <tr class="dish-category">
+              <th colspan="4">
+                <h3 class="text">{{ category }}</h3>
+              </th>
+            </tr>
+            <tr class="dish-list" v-for="dish, idx_2 in classifiedDishes[category]" :key="idx_2">
+              <td class="field name">
+                <h3>
+                  {{ dish.name }}
+                </h3>
+              </td>
+              <td class="field price">
+                <h3>
+                  {{ dish.price }}
+                </h3>
+              </td>
+              <td class="field amount">
+                <input class="input-field" type="number" v-model="userOrder[dish._id].amount" min="0">
+              </td>
+              <td class="field remark">
+                <input class="input-field" type="text" v-model="userOrder[dish._id].remark" maxlength="15">
+              </td>
+            </tr>
+          </template>
+          <tr class="send-btn-container" v-if="isChanged">
+            <th colspan="4">
+              <button class="send-btn" @click="send_order">送出</button>
+            </th>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="result-wrapper">
+      <h2 class="header-title">我的訂單</h2>
+      <table>
+        <thead>
+          <tr>
+            <th scope="col" class="name">餐點</th>
+            <th scope="col" class="price">價錢</th>
+            <th scope="col" class="amount">數量</th>
+            <th scope="col" class="remark">備註</th>
+          </tr>
+        </thead>
+
+        <tbody class="result-wrapper-body" v-if="orderResult">
+          <template v-for="(item, index) in orderResult.orderedItems" :key="index">
+            <tr>
+              <td>
+                <h3>
+                  {{ item.name }}
+                </h3>
+              </td>
+              <td>
+                <h3>
+                  {{ item.price }}
+                </h3>
+              </td>
+              <td>
+                <h3>
+                  {{ item.amount }}
+                </h3>
+              </td>
+              <td>
+                <h3>
+                  {{ item.remark }}
+                </h3>
+              </td>
+            </tr>
+          </template>
+          <tr class="send-btn-container" v-if="orderResult">
+            <th colspan="4">
+              <button class="send-btn" @click="clear_order">刪除訂單</button>
+            </th>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="total-order">
+    <h1 class="title">訂購總覽</h1>
+
+    <table 
+      border="1" cellspacing="0" cellpadding="10"
+      v-if="order_info"
+    >
+      <thead>
+        <tr>
+          <th>使用者名稱</th>
+          <th>訂購內容</th>
+          <th>總金額</th>
+          <th>訂購時間</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="(each_order, index) in order_info.orders" :key="index">
+          <td>{{ each_order.name }}</td>
+          <td>
+            <span
+              class="order_item"
+              v-for="(order_item, index) in each_order.orderedItems" :key="index"
+            >
+              {{ order_item.name }} x {{ order_item.amount }} <span v-if="order_item.remark">({{ order_item.remark }})</span>　
+            </span>
+          </td>
+          <td>{{ each_order.totalAmount }} 元</td>
+          <td>{{ full_time_format(each_order.orderTime) }}</td>
+        </tr>
+      </tbody>
+    </table>    
+  </div>
+</template>
   
 
 <style>
+.order-header {
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 80%;
+  margin: 0 auto;
+}
+
+.title-container {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.order-title {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #333;
+  display: inline-block;
+}
+
+.separator {
+  color: #bbb;
+  font-weight: normal;
+}
+
+.order-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+}
+
+.info-label {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #555;
+  margin-right: 10px;
+}
+
+.info-text {
+  font-size: 1.2rem;
+  color: #333;
+}
+
 .restaurant-wrapper {
     display: grid;
     grid-template-columns: 2fr 1fr;
@@ -243,8 +344,7 @@ const clear_order = async () => {
     width: 100%;
 }
 
-.restaurant-wrapper th,
-.restaurant-wrapper td {
+th, td {
     border: 1px solid rgb(160 160 160);
     padding: 0.5rem;
 }
@@ -311,13 +411,16 @@ const clear_order = async () => {
 
 .result-wrapper {
     width: 100%;
+    overflow: scroll;
+}
+.result-wrapper td{
 }
 .result-wrapper .result-wrapper-body{
   text-align: center;
 }
 
 button:hover {
-    cursor: pointer;
+  cursor: pointer;
 }
 
 .order-btn{
@@ -325,4 +428,23 @@ button:hover {
   text-align: right;
 }
 
+.total-order{
+  width: 80%;
+  margin: 20px auto;
+  text-align: center;
+  overflow: scroll;
+}
+
+.total-order table {
+  margin-top: 10px;
+  width: 100%;
+}
+
+.total-order table .order_item{
+  overflow: scroll;
+}
+
+.total-order td {
+  padding: 4px;
+}
 </style>
