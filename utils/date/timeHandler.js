@@ -15,3 +15,17 @@ export function getFormattedUTCTime() {
   const isoString = now.toISOString();
   return isoString.replace('Z', '+00:00');
 }
+
+export function toLocalISOString(date) {
+  const localDate = new Date(date - date.getTimezoneOffset() * 60000);
+
+  localDate.setSeconds(null);
+  localDate.setMilliseconds(null);
+  return localDate.toISOString().slice(0, -1);
+}
+
+export function oneHourLater(date) {
+  const oneHourInMs = 60 * 60 * 1000;
+  const futureDate = new Date(date.getTime() + oneHourInMs);
+  return toLocalISOString(futureDate);
+}

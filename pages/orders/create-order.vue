@@ -5,13 +5,13 @@ import { verify_credential } from '@/utils/auth/verifyHandler'
 import { getGroupByUserID } from '@/utils/Common'
 import { addOrder } from '@/utils/order/orderHandler'
 import { getGroupData } from '@/utils/groups/groupHandler'
-import { getFormattedUTCTime } from '@/utils/date/timeHandler'
+import { getFormattedUTCTime, toLocalISOString, oneHourLater } from '@/utils/date/timeHandler'
 
 const today = getFormattedUTCTime()
 const restaurant_select = ref({ id: 0 })
 const group_select = ref({ id: 0 })
-const startTime_select = ref()
-const endTime_select = ref()
+const startTime_select = ref(toLocalISOString(new Date()))
+const endTime_select = ref(oneHourLater(new Date()))
 const orderName_input = ref('');
 const notes_input = ref('');
 const router = useRouter()
@@ -126,8 +126,11 @@ const CreateOrder = async () => {
 
 
             <main v-if="currentState == State.restaurant" class="restaurant-container">
-                <div v-for="restaurant in restaurants" :key="restaurant._id" @click="selectRestaurant(restaurant)"
-                    :class="{ selected: restaurant_select._id === restaurant._id }">
+                <div 
+                    v-for="restaurant in restaurants" :key="restaurant._id" 
+                    @click="selectRestaurant(restaurant)"
+                    :class="{ selected: restaurant_select._id === restaurant._id }"
+                >
                     <img :src="restaurant.image" alt="Restaurant Image" class="restaurant-image" />
                     <div class="restaurant-info">
                         <h2>{{ restaurant.name }}</h2>
@@ -141,8 +144,11 @@ const CreateOrder = async () => {
             </main>
 
             <main v-if="currentState == State.group" class="group-container">
-                <div v-for="group in groupDataList" :key="group._id" @click="selectGroup(group)"
-                    :class="{ selected: group_select._id === group._id }">
+                <div 
+                    v-for="group in groupDataList" :key="group._id" 
+                    @click="selectGroup(group)"
+                    :class="{ selected: group_select._id === group._id }"
+                >
                     <div class="restaurant-info">
                         <h2>{{ group.name }}</h2>
                         <p><strong>成員人數:</strong> {{ group.members.length }}</p>
@@ -154,10 +160,13 @@ const CreateOrder = async () => {
             <main v-if="currentState == State.time" class="time-container">
                 <label for="orderName">訂單名稱</label>
                 <input type="text" v-model="orderName_input" id="orderName" placeholder="輸入訂單名稱...">
+
                 <label for="start_at">開始時間</label>
-                <input type="datetime-local" v-model="startTime_select" name="" id="start_at" :min="today">
+                <input type="datetime-local" v-model="startTime_select" name="" id="start_at" :min="today" default="now">
+
                 <label for="end_at">截止時間</label>
                 <input type="datetime-local" v-model="endTime_select" id="end_at" :min="today">
+                
                 <label for="notes">備註</label>
                 <input type="text" v-model="notes_input" id="notes" placeholder="輸入備註...">
             </main>
@@ -173,26 +182,32 @@ const CreateOrder = async () => {
                             <p><strong>地址:</strong> {{ restaurant_select.address }}</p>
                         </div>
                     </div>
-                    <span v-else class="warning">未選擇餐廳</span>
                 </section>
 
                 <section class="others">
-                    <span v-if="orderName_input != ''">{{ orderName_input }}</span>
-                    <span v-else class="warning">尚未輸入訂單名稱</span>
-                    <span v-if="group_select.name">{{ group_select.name }}</span>
+                    <span v-if="restaurant_select.name !== undefined">餐廳名稱：{{ restaurant_select.name }}</span>
+                    <span v-else class="warning">尚未選擇餐廳</span>
+
+                    <span v-if="group_select.name">群組名稱：{{ group_select.name }}</span>
                     <span v-else class="warning">尚未選擇群組</span>
-                    <span v-if="startTime_select">訂單截止時間:{{ new Date(startTime_select).toLocaleString() }}</span>
+
+                    <span v-if="orderName_input != ''">訂單名稱：{{ orderName_input }}</span>
+                    <span v-else class="warning">尚未輸入訂單名稱</span>
+
+                    <span v-if="startTime_select">開放時間：{{ new Date(startTime_select).toLocaleString() }}</span>
                     <span v-else class="warning">未設定訂單開始時間</span>
-                    <span v-if="endTime_select">訂單截止時間:{{ new Date(endTime_select).toLocaleString() }}</span>
+
+                    <span v-if="endTime_select">截止時間：{{ new Date(endTime_select).toLocaleString() }}</span>
                     <span v-else class="warning">未設定訂單截止時間</span>
-                    <span>備註:{{ notes_input === '' ? '無' : notes_input }}</span>
-                    <button class="submit" @click="CreateOrder">建立訂單</button>
+
+                    <span>訂單備註：{{ notes_input === '' ? '無' : notes_input }}</span>
                 </section>
             </main>
 
 
             <button class="before-step" @click="goBack">上一步</button>
-            <button class="next-step" @click="goNext">下一步</button>
+            <button class="next-step" v-if="currentState === State.check" @click="CreateOrder">建立訂單</button>
+            <button class="next-step" v-else @click="goNext">下一步</button>
         </div>
     </div>
 </template>
@@ -373,8 +388,9 @@ main.restaurant-container div .restaurant-info {
 
 .time-container>input {
     text-align: center;
-    width: fit-content;
+    width: 400px;
     font-size: 1.5rem;
+    border-radius: 4px;
 }
 
 .check-container {
