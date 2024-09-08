@@ -10,7 +10,6 @@ import { full_time_format } from '@/utils/date/timeHandler'
 const orders = ref([])
 const user_id = ref('')
 const router = useRouter();
-const order_id = useState('order_id', () => '')
 
 
 onMounted(async() => {
@@ -21,7 +20,6 @@ onMounted(async() => {
     const user_info = await getUserData(`user_id=${user_id.value}`);
     const joinedGroups = user_info.data.joinedGroups;
 
-    /////////////////// info 是可以給前端用的資訊
     for (const group of joinedGroups){
         const info = await getOrders(`group_id=${group}`);
         for (const d of info.data){
@@ -46,30 +44,6 @@ async function get_valid_order(order_list){
     }
     return valid_orders;
 }
-
-const monitorOrderStatus = (activeOrders) => {
-    const intervalId = setInterval(() => {
-        const now = new Date().toISOString();
-
-        activeOrders = activeOrders.filter( async item => {
-            const { order_open_time: openTime, order_lock_time: lockTime, hasOpened, hasClosed } = item;
-            if (!hasOpened && now >= openTime && now < lockTime && item.status != "Finished") {
-                await updateStatus({orderId: item._id , Status: "Available"})
-                item.hasOpened = true; // 標記為已開放
-
-            } else if (!hasClosed && now >= lockTime && item.status != "Finished") {
-                await updateStatus({orderId: item._id , Status: "Locked"})
-                item.hasClosed = true; // 標記為已關閉
-                return false; // 移除已關閉的訂單
-            }
-            return true; // 保留尚未關閉的訂單
-        });
-
-        if (activeOrders.length === 0) {
-            clearInterval(intervalId); // 停止檢查，因為所有訂單都已關閉
-        }
-    }, 1000);
-};
 
 async function getCreatorName(id){
     const user_info = await getUserData(`user_id=${id}`);
@@ -97,13 +71,12 @@ const getPriceRange = async (restaurantId) => {
     }
 };
 
-const toOrder = ( restaurant_id, orderID, status ) => {
-    if ( status == 'Finished' ){
-        router.push('orders/order-history');
-        return
-    }
-    order_id.value = orderID;
-    router.push(`/orders/${orderID}`);
+const toOrder = async (order) => {
+    if (order.status === 'Locked')
+        return alert("即將開放");
+    const _response = await check_status(order);
+    if (_response)
+        router.push(`/orders/${order._id}`);
 }
 
 const change_order_status = async (order_id, group_id, status) => {
@@ -130,8 +103,9 @@ const change_order_status = async (order_id, group_id, status) => {
         <div class="order-list">
             <div 
                 class="order-container"
+                :class="order.status"
                 v-for="order in orders" :key="order._id" 
-                @click="toOrder( order.restaurant_id._id, order._id, order.status )"
+                @click="toOrder(order)"
             >
                 <section class="main">
                     <h1>{{ order.order_name }}</h1>
@@ -141,8 +115,8 @@ const change_order_status = async (order_id, group_id, status) => {
                     <button class="order_status_btn canceled" v-if="order.creator_id === user_id" @click.stop="change_order_status(order._id, order.group_id, 'Canceled')">取消訂單</button>
                 </section>
                 <section class="info">
-                    <span>價格: {{ order.priceRange }}</span>
-                    <span>截止時間: {{ full_time_format(order.order_lock_time) }}</span>
+                    <span>價格區間: {{ order.priceRange }}</span>
+                    <span>點餐時間: {{ full_time_format(order.order_open_time) }} - {{ full_time_format(order.order_lock_time) }}</span>
                 </section>
             </div>
             <h1 class="error-msg">新增其他訂單</h1>
@@ -195,11 +169,11 @@ const change_order_status = async (order_id, group_id, status) => {
     position: relative;
     overflow: hidden;
     z-index: 0;
+    margin: 20px 0;
 }
 .order-container:hover{
     cursor: pointer;
 }
-
 .order-container::before {
     content: '';
     position: absolute;
