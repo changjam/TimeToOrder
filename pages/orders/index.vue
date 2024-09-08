@@ -19,19 +19,19 @@ onMounted(async() => {
     user_id.value = data.user_id
     const user_info = await getUserData(`user_id=${user_id.value}`);
     const joinedGroups = user_info.data.joinedGroups;
-
+    
+    let local_orders = [];
     for (const group of joinedGroups){
         const info = await getOrders(`group_id=${group}`);
         for (const d of info.data){
-            orders.value.push({
+            local_orders.push({
                 ...d,
-                creator: await getCreatorName(d.creator_id),
                 priceRange: await getPriceRange(d.restaurant_id._id)
             })
         }
     }
 
-    orders.value = await get_valid_order(orders.value);
+    orders.value = await get_valid_order(local_orders);
 })
 
 async function get_valid_order(order_list){
@@ -45,27 +45,22 @@ async function get_valid_order(order_list){
     return valid_orders;
 }
 
-async function getCreatorName(id){
-    const user_info = await getUserData(`user_id=${id}`);
-    return user_info.data.name;
-}
-
 const getPriceRange = async (restaurantId) => {
     let minPrice = Infinity;
     let maxPrice = -Infinity;
     try {
-    const menu_data = await getMenus(`restaurant=${restaurantId}`);
-    for ( const data of menu_data.data){
-        const price = data.price;
-        if (price < minPrice) minPrice = price;
-        if (price > maxPrice) maxPrice = price;
-    }
+        const menu_data = await getMenus(`restaurant=${restaurantId}`);
+        for ( const data of menu_data.data){
+            const price = data.price;
+            if (price < minPrice) minPrice = price;
+            if (price > maxPrice) maxPrice = price;
+        }
 
-    if (minPrice === Infinity && maxPrice === -Infinity){
-        return '未知'
-    }else{
-        return `$${minPrice}~$${maxPrice}`
-    }
+        if (minPrice === Infinity && maxPrice === -Infinity){
+            return '未知'
+        }else{
+            return `$${minPrice}~$${maxPrice}`
+        }
     } catch(error){
         console.log(error)
     }
@@ -109,7 +104,7 @@ const change_order_status = async (order_id, group_id, status) => {
             >
                 <section class="main">
                     <h1>{{ order.order_name }}</h1>
-                    <span class="master">創建人:{{ order.creator }}</span>
+                    <span class="master">創建人:{{ order.creator_name }}</span>
                     <span class="master">訂單狀態:{{ order.status }}</span>
                     <button class="order_status_btn finished" v-if="order.creator_id === user_id" @click.stop="change_order_status(order._id, order.group_id, 'Finished')">結束訂單</button>
                     <button class="order_status_btn canceled" v-if="order.creator_id === user_id" @click.stop="change_order_status(order._id, order.group_id, 'Canceled')">取消訂單</button>

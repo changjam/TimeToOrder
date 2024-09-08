@@ -58,10 +58,6 @@ onMounted(async () => {
         groupDataList.value.push({ ...groupData.data, creator_name: creator_name })
     }
 
-    // const group_id = useState('group_id')
-    // group_select.value._id = group_id.value
-
-    // 獲得餐廳
     restaurants.value = await getRestaurant();
 })
 
@@ -97,11 +93,11 @@ const CreateOrder = async () => {
         order_open_time: startTime_select.value,
         order_lock_time: endTime_select.value,
         creator_id: user_info.value.user_id,
+        creator_name: user_info.value.nickName || user_info.value.name,
         group_id: group_select.value._id,
         notes: notes_input.value,
     };
 
-    // group_id.value = ''
     try {
         await addOrder(orderData);
         router.push('/orders')
@@ -129,6 +125,7 @@ const CreateOrder = async () => {
                 <div 
                     v-for="restaurant in restaurants" :key="restaurant._id" 
                     @click="selectRestaurant(restaurant)"
+                    @dblclick="goNext"
                     :class="{ selected: restaurant_select._id === restaurant._id }"
                 >
                     <img :src="restaurant.image" alt="Restaurant Image" class="restaurant-image" />
@@ -147,6 +144,7 @@ const CreateOrder = async () => {
                 <div 
                     v-for="group in groupDataList" :key="group._id" 
                     @click="selectGroup(group)"
+                    @dblclick="goNext"
                     :class="{ selected: group_select._id === group._id }"
                 >
                     <div class="restaurant-info">
@@ -453,5 +451,12 @@ main.restaurant-container div .restaurant-info {
 .check-container section.others button.submit:hover {
     cursor: pointer;
     background: var(--light-blue)
+}
+
+@media screen and (max-width: 786px) {
+  .check-container {
+    display: flex;
+    flex-direction: column;
+  }
 }
 </style>
