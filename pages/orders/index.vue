@@ -31,7 +31,14 @@ onMounted(async() => {
         }
     }
 
-    orders.value = await get_valid_order(local_orders);
+    orders.value = await get_valid_order(local_orders).then((res)=>{
+        return res.sort((a, b) => {
+            if (a.status >= b.status)
+                return 1
+            else
+                return -1
+        })
+    });
 })
 
 async function get_valid_order(order_list){
@@ -67,11 +74,7 @@ const getPriceRange = async (restaurantId) => {
 };
 
 const toOrder = async (order) => {
-    if (order.status === 'Locked')
-        return alert("即將開放");
-    const _response = await check_status(order);
-    if (_response)
-        router.push(`/orders/${order._id}`);
+    router.push(`/orders/${order._id}`);
 }
 
 const change_order_status = async (order_id, group_id, status) => {
@@ -95,6 +98,10 @@ const change_order_status = async (order_id, group_id, status) => {
 
 <template>
     <div v-if="orders" class="order-wrapper">
+        <h1 class="error-msg">新增其他訂單</h1>
+        <nav class="features">
+            <CreateOrderCard />
+        </nav>
         <div class="order-list">
             <div 
                 class="order-container"
@@ -103,9 +110,9 @@ const change_order_status = async (order_id, group_id, status) => {
                 @click="toOrder(order)"
             >
                 <section class="main">
-                    <h1>{{ order.order_name }}</h1>
-                    <span class="master">創建人:{{ order.creator_name }}</span>
-                    <span class="master">訂單狀態:{{ order.status }}</span>
+                    <h1 class="order_name">{{ order.order_name }}</h1>
+                    <span class="master creator">創建人:{{ order.creator_name }}</span>
+                    <span class="master status">訂單狀態:{{ order.status }}</span>
                     <button class="order_status_btn finished" v-if="order.creator_id === user_id" @click.stop="change_order_status(order._id, order.group_id, 'Finished')">結束訂單</button>
                     <button class="order_status_btn canceled" v-if="order.creator_id === user_id" @click.stop="change_order_status(order._id, order.group_id, 'Canceled')">取消訂單</button>
                 </section>
@@ -114,30 +121,18 @@ const change_order_status = async (order_id, group_id, status) => {
                     <span>點餐時間: {{ full_time_format(order.order_open_time) }} - {{ full_time_format(order.order_lock_time) }}</span>
                 </section>
             </div>
-            <h1 class="error-msg">新增其他訂單</h1>
-            <nav class="features">
-                <CreateOrderCard />
-            </nav>
         </div>
-    </div>
-    
-    <div v-else class="order-wrapper">
-        <h1 class="error-msg">看起來沒有訂單可以點，你可以</h1>
-        <nav class="features">
-            <CreateOrderCard />
-        </nav>
     </div>
 
 </template>
 
-<style>
+<style scoped>
 .features {
     display: grid;
     grid-template-columns: repeat(auto-fit, 300px);
     grid-auto-rows: 400px;
     justify-content: center;
     gap: 1rem;
-    height: 75%;
     margin-top: 1rem;
 }
 
@@ -221,5 +216,9 @@ const change_order_status = async (order_id, group_id, status) => {
 
 .order-container span {
     font-size: 1.2rem;
+}
+
+.Locked{
+    border: 3px solid #924848;
 }
 </style>

@@ -16,6 +16,7 @@ const classifiedDishes = ref(null);
 const order_info = ref(null);
 const order_id = ref('');
 const user_info = ref('');
+const total_amount = ref(0);
 const categories = ref(null);
 const userOrder = ref({});
 const orderResult = ref({});
@@ -34,20 +35,18 @@ onMounted(async () => {
   order_id.value = route.fullPath.match(/\/orders\/(.+)/)[1];
 
   order_info.value = await getOrders(`_id=${order_id.value}`).then((res)=> res.data[0]);
-  await check_order_status();
-
   const restaurant_id = order_info.value.restaurant_id._id;
+  total_amount.value = get_total_amount();
+
   await fetchMenus(restaurant_id);
   orderResult.value = order_info.value.orders.filter((order)=> order.user_id === user_id)[0];
 });
 
-async function check_order_status(){
-  const _res = await check_status(order_info.value);
-  if (!_res){
-    alert('訂單狀態有誤');
-    router.push('/orders');
-    return; 
+function check_order_status(){
+  if (order_info.value.status !== 'Available'){
+    return false; 
   }
+  return true;
 }
 
 const isChanged = computed(() => {
@@ -58,6 +57,14 @@ const isChanged = computed(() => {
   }
   return false;
 });
+
+const get_total_amount = () => {
+  let _total = 0;
+  order_info.value.orders.forEach((each_order)=>{
+    _total += each_order.totalAmount;
+  })
+  return _total;
+} 
 
 const fetchMenus = async (restaurantId) => {
     try {
@@ -74,8 +81,8 @@ const fetchMenus = async (restaurantId) => {
 };
 
 const send_order = async () => {
-  await check_order_status();
-  if (!isChanged)
+  const valid_order_status = check_order_status();
+  if (!isChanged || !valid_order_status)
     return;
 
   const orderDetails = {
@@ -108,9 +115,11 @@ const send_order = async () => {
 }
 
 const clear_order = async () => {
-  await check_order_status();
-  const userConfirmed = confirm('確定刪除?');
+  const valid_order_status = check_order_status();
+  if (!valid_order_status)
+    return;
 
+  const userConfirmed = confirm('確定刪除?');
   if (!userConfirmed)
     return;
   
@@ -126,9 +135,13 @@ const clear_order = async () => {
 
 <template>
   <div class="order-header" v-if="order_info">
+    <div class="go_back_btn_container">
+      <button class="go_back_btn" @click="goBack()"> back </button>
+    </div>
     <div class="title-container">
       <h1 class="order-title">{{ order_info.order_name }} <span class="separator">｜</span> {{ order_info.restaurant_id.name }}</h1>
     </div>
+
     <div class="order-info">
       <div class="info-item">
         <h2 class="info-label">發起人:</h2>
@@ -138,10 +151,13 @@ const clear_order = async () => {
         <h2 class="info-label">訂餐時間:</h2>
         <span class="info-text">{{ full_time_format(order_info.order_open_time) }} - {{ full_time_format(order_info.order_lock_time) }}</span>
       </div>
-      <div class="info-item">
-        <h2 class="info-label">訂餐狀態:</h2>
-        <span class="info-text">{{ order_info.status }}</span>
-      </div>
+    </div>
+    <div class="order-status-container">
+      <span class="status" :class="{'active': order_info.status === 'Available'}">Available</span>
+      <span class="status" :class="{'active': order_info.status === 'Locked'}">Locked</span>
+      <span class="status" :class="{'active': order_info.status === 'In_Progress'}">In Progress</span>
+      <span class="status" :class="{'active': order_info.status === 'Finished'}">Finished</span>
+      <span class="status" :class="{'active': order_info.status === 'Canceled'}">Canceled</span>
     </div>
   </div>
 
@@ -229,6 +245,18 @@ const clear_order = async () => {
               </td>
             </tr>
           </template>
+          <tr v-if="orderResult">
+            <th colspan="1">
+              <h3>
+                總金額
+              </h3>
+            </th>
+            <th colspan="3">
+              <h3>
+                {{ orderResult.totalAmount }}
+              </h3>
+            </th>
+          </tr>
           <tr class="send-btn-container" v-if="orderResult">
             <th colspan="4">
               <button class="send-btn" @click="clear_order">刪除訂單</button>
@@ -262,11 +290,20 @@ const clear_order = async () => {
               class="order_item"
               v-for="(order_item, index) in each_order.orderedItems" :key="index"
             >
-              {{ order_item.name }} x {{ order_item.amount }} <span v-if="order_item.remark">({{ order_item.remark }})</span>　
+              <span v-if="index !== 0">、</span>
+              {{ order_item.name }} x {{ order_item.amount }} <span v-if="order_item.remark">({{ order_item.remark }})</span>
             </span>
           </td>
           <td>{{ each_order.totalAmount }} 元</td>
           <td>{{ full_time_format(each_order.orderTime) }}</td>
+        </tr>
+        <tr>
+          <td colspan="1">
+            <h3>Total</h3>
+          </td>
+          <td colspan="3">
+            {{ total_amount }}
+          </td>
         </tr>
       </tbody>
     </table>    
@@ -274,14 +311,36 @@ const clear_order = async () => {
 </template>
   
 
-<style>
+<style scoped>
 .order-header {
+  position: relative;
   background-color: #f9f9f9;
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   width: 80%;
   margin: 0 auto;
+}
+
+.order-header .go_back_btn_container{
+  position: absolute;
+  width: 70px;
+  height: 30px;
+  top: 0;
+  left: 0;
+}
+
+.order-header .go_back_btn_container button{
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 16px;
+  margin: 12px;
+}
+.order-header .go_back_btn_container button:hover{
+  background-color: #333;
+  color: #ddd;
 }
 
 .title-container {
@@ -446,5 +505,33 @@ button:hover {
 
 .total-order td {
   padding: 4px;
+}
+
+/* 狀態欄容器 */
+.order-status-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.status {
+  width: 150px;
+  text-align: center;
+  padding: 10px 0;
+  margin: 0 10px;
+  border-radius: 20px;
+  font-size: 1rem;
+  color: #fff;
+  background-color: #ddd;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.status.active {
+  background-color: #333;
+  color: #fff;
+}
+
+.status:hover{
+  cursor: pointer;
 }
 </style>

@@ -85,26 +85,16 @@ export async function updateStatus(data) {
 export async function check_status(order) {
   const now = new Date().toISOString();
   const { _id, status, order_open_time, order_lock_time } = order;
-  if (now < order_open_time){
-      if (status === 'Available'){
-          await updateStatus({orderId: _id , Status: 'Locked'})
-          return order;
-      }else if (status === 'Locked'){
-          return order;
-      }
-  }
-  else if (now >= order_lock_time){
+  if (status === 'Finished' || status === 'Canceled')
+    return;
+
+  if (now < order_open_time || now >= order_lock_time){
       if (status === 'Available')
           await updateStatus({orderId: _id , Status: 'Locked'})
   }
-  else if (now >= order_open_time && now < order_lock_time){
-      if (status === 'Available'){
-          return order;
-      }else if (status === 'Locked'){
+  else {
+      if (status === 'Locked')
           await updateStatus({orderId: _id , Status: 'Available'})
-          return order;
-      }
-  }else{
-      return order;
   }
+  return order;
 }

@@ -210,7 +210,7 @@ const CreateOrder = async () => {
     </div>
 </template>
 
-<style>
+<style scoped>
 .create-order-wrapper {
     padding-top: 1rem;
     margin-inline: auto;
