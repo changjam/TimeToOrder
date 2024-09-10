@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { getUserData, updateUser, getAllUsers } from '@/utils/users/userHandler'
-import { addGroup, getGroupData } from '@/utils/groups/groupHandler'
+import { addGroup } from '@/utils/groups/groupHandler'
 import { verify_credential } from '@/utils/auth/verifyHandler'
 import defaultAvatar from '~/assets/images/plate_black.svg'
 

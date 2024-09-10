@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { getUserData , getUsersDataInGroup } from '@/utils/users/userHandler'
-import { addGroup , getGroupData} from '@/utils/groups/groupHandler'
+import { getGroupData} from '@/utils/groups/groupHandler'
 import { verify_credential } from '@/utils/auth/verifyHandler'
 import { date_output_format } from '@/utils/date/timeHandler'
 import AvatarCircles from '~/components/AvatarCircles.vue'
