@@ -33,6 +33,7 @@ onMounted(async () => {
       });
     }
 })
+
 </script>
 
 <template>
@@ -47,7 +48,7 @@ onMounted(async () => {
             <div class="item-header">
               <p class="item-name">訂購人 : {{ item.name }}</p>
               <p class="item-total-amount">總金額 : {{ item.totalAmount }}</p>
-              <p class="item-order-time">訂購時間 : {{ item.orderTime }}</p>
+              <p class="item-order-time">訂購時間 : {{ new Date(item.orderTime).toLocaleString() }}</p>
             </div>
             <div v-for="food in item.orderedItems" :key="food.name" class="food-details">
               <p>訂購細項 :</p>
