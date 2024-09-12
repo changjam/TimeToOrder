@@ -1,6 +1,6 @@
 <script setup>
 import { getUserData } from '@/utils/users/userHandler'
-import { getOrders, updateStatus, check_status } from '@/utils/order/orderHandler'
+import { getOrders, updateStatus, check_status, get_status } from '@/utils/order/orderHandler'
 import { getMenus } from '@/utils/menus/menuHandler';
 import { verify_credential } from '@/utils/auth/verifyHandler'
 import { useRouter } from '#app';
@@ -98,11 +98,10 @@ const change_order_status = async (order_id, group_id, status) => {
 
 <template>
     <div v-if="orders" class="order-wrapper">
-        <h1 class="error-msg">新增其他訂單</h1>
-        <nav class="features">
-            <CreateOrderCard />
-        </nav>
         <div class="order-list">
+            <div class="order-container" @click="router.push({path:'/orders/create-order'})">
+                <div class="create-order-btn">＋建立訂單</div>
+            </div>
             <div 
                 class="order-container"
                 :class="order.status"
@@ -112,7 +111,7 @@ const change_order_status = async (order_id, group_id, status) => {
                 <section class="main">
                     <h1 class="order_name">{{ order.order_name }}</h1>
                     <span class="master creator">創建人:{{ order.creator_name }}</span>
-                    <span class="master status">訂單狀態:{{ order.status }}</span>
+                    <span class="master status">訂單狀態:{{ get_status(order.status) }}</span>
                     <button class="order_status_btn finished" v-if="order.creator_id === user_id" @click.stop="change_order_status(order._id, order.group_id, 'Finished')">結束訂單</button>
                     <button class="order_status_btn canceled" v-if="order.creator_id === user_id" @click.stop="change_order_status(order._id, order.group_id, 'Canceled')">取消訂單</button>
                 </section>
@@ -152,6 +151,7 @@ const change_order_status = async (order_id, group_id, status) => {
 }
 
 .order-container {
+    width: 100%;
     background: var(--dark-blue);
     border: 3px solid var(--black);
     padding: 1rem;
@@ -160,6 +160,15 @@ const change_order_status = async (order_id, group_id, status) => {
     overflow: hidden;
     z-index: 0;
     margin: 20px 0;
+}
+.order-container .create-order-btn{
+    font-size: 25px;
+    width: 100%;
+    text-align: center;
+    background: none;
+}
+.order-container .create-order-btn:hover{
+    cursor: pointer;
 }
 .order-container:hover{
     cursor: pointer;
@@ -220,5 +229,8 @@ const change_order_status = async (order_id, group_id, status) => {
 
 .Locked{
     border: 3px solid #924848;
+}
+.Confirmed{
+    border: 3px solid #489290;
 }
 </style>
