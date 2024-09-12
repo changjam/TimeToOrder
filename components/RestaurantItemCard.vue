@@ -1,19 +1,23 @@
 <script setup>
 import { getMenus } from '@/utils/menus/menuHandler';
 const priceRange = ref(null)
-const props = defineProps(['restaurants'])
-const restaurant = props.restaurants
-console.log(restaurant._id)
+const props = defineProps(['restaurant'])
+const restaurant = props.restaurant
+
 const router = useRouter();
 const openUrl = (link) => {
     router.push({ path: `/restaurants/${link}` })
 }
 
+onMounted(()=>{
+    console.table(props.restaurant)
+})
+
 const getPriceRange = async (restaurantId) => {
     let minPrice = Infinity;
     let maxPrice = -Infinity;
     try {
-        const menu_data = await getMenus(`restaurant=${restaurantId}`);
+        const menu_data = await getMenus(`restaurant=${props.restaurant.id}`);
         for ( const data of menu_data.data){
             const price = data.price;
             if (price < minPrice) minPrice = price;
@@ -28,7 +32,6 @@ const getPriceRange = async (restaurantId) => {
         console.log(error)
     }
   };
-
 </script>
 
 <template>

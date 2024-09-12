@@ -25,5 +25,28 @@ export async function getRestaurant() {
   }catch(error){
     console.log(error);
   }
+}
+export async function getCreatorRestaurant(data) {
+  try{
+    const response = await $fetch(`/api/restaurants/getUserRestaurant?${data}`, {
+      method: 'GET',
+  });    
+    return response;
+  }catch(error){
+    console.log(error);
+  }
+}
 
+export async function updateRestaurant(id, updateFields) {
+  try {
+    const response = await $fetch(`/api/restaurants/${id}/put`, {
+      method: 'PUT',
+      body: {        
+        ...updateFields,
+      },
+    });
+    return response;
+  } catch (error) {
+    throw new Error('Failed to update User');
+  }
 }

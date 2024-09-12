@@ -30,6 +30,10 @@ button {
   border: 0;
 }
 
+button:hover{
+  cursor: pointer;
+}
+
 @media (min-width: 1200px) {
   :root {
     --font-size1: 16px;

@@ -1,303 +1,269 @@
 <script setup>
-    import { ref } from 'vue'
-    import { useRouter } from 'vue-router'
-    import { addRestaurant } from '@/utils/restaurants/restaurantHandler'
-    import { getMenus , addMenu } from '@/utils/menus/menuHandler'
-    import { getMenuByImage } from '@/utils/ocr/ocrHandler'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { getUserData } from '@/utils/users/userHandler'
+import { addRestaurant, updateRestaurant } from '@/utils/restaurants/restaurantHandler'
+import { verify_credential } from '@/utils/auth/verifyHandler'
+import InputField from '~/components/InputField.vue'
+import MenuArea from '~/components/MenuArea.vue'
 
-    const restaurant = ref({
+const restaurant = ref({
     name: '',
     phone: '',
     address: '',
     types: [''],
-    image: ''
-    })
+    image: '',
+})
+const restaurantId = ref()
 
-    const menuItems = ref([
-    { name: '', price: 0, category: '', cate_description: '' },
-    ])
-
-    const currentMenuItemIndex = ref(0)
-
-    const isAddingRestaurant = ref(true)
-    const router = useRouter()
-
-    const handleSubmit = async () => {
-        if (isAddingRestaurant.value) {
-            restaurant.value.types = restaurant.value.types.filter(type => type.trim() !== '')
-            try {
-            const addedRestaurant = await addRestaurant({ ...restaurant.value, types: restaurant.value.types })
-            const restaurantId = addedRestaurant._id
-            const Menu = await getMenus(restaurantId)
-            restaurant.value._id = restaurantId
-            if (Menu.data.length === 0) {
-                isAddingRestaurant.value = false
-            } else {
-                // 如果有菜單資料，可能要跳轉或進行其他操作
-                console.log("已經有菜單...")
-            }
-            } catch (error) {
-            console.log(error)
-            alert("新增餐廳時出錯，請稍後再試")
-            }
-        } else {
-            try {
-            // 新增多個菜單
-            for (const menuItem of menuItems.value) {
-                if (menuItem.name.trim() !== '') { // 確保菜單名稱不為空
-                const menuData = {
-                    restaurant: restaurant.value._id,
-                    ...menuItem
-                };
-                await addMenu(menuData);
-                }
-            }
-            alert("所有菜單已新增成功");
-            setTimeout(router.push(`/restaurants/${restaurant.value._id}`), 1500)
-            } catch (error) {
-            console.log(error)
-            alert("新增菜單時出錯，請稍後再試")
-            }
-        }
+const menuArea = ref(null)
+const triggerSaveMenu = () => {
+    console.log("觸發")
+    if (menuArea.value) {
+        menuArea.value.saveMenu(); // 通过 ref 调用子组件的方法
     }
+}
+// 標準流程
+const user_info = ref(null)
+const router = useRouter();
+onMounted(async () => {
+    const data = await verify_credential()
+    if (!data)
+        router.push('/login');
 
-    // 新增類型
-    const addType = () => {
-        restaurant.value.types.push('')
+    user_info.value = await getUserData(`user_id=${data.user_id}`)
+    user_info.value = user_info.value.data
+
+})
+
+// 餐廳更改狀態
+const origin_status = ref({ name: '', phone: '', address: '', types: [''], image: '', })
+const isChanged = computed(() => {
+    if (origin_status.value.name !== restaurant.value.name) {
+        console.log('name')
+        return true;
     }
-
-    // 移除類型
-    const removeType = (index) => {
-        if (restaurant.value.types.length > 1) {
-            restaurant.value.types.splice(index, 1)
-        }
+    if (origin_status.value.phone !== restaurant.value.phone) {
+        console.log('phone')
+        return true;
     }
+    if (origin_status.value.address !== restaurant.value.address) {
+        console.log('address')
+        return true;
+    }
+    if (origin_status.value.image !== restaurant.value.image) {
+        console.log('image')
+        return true;
+    }
+    if (origin_status.value.types !== restaurant.value.types) {
+        console.log('types')
+        return true;
+    }
+    return false;
+});
 
-    // 選擇菜單圖片
-    const handleFileChange = async (event) => {
-        const file = event.target.files[0]
-        if (file) {
-            const reader = new FileReader()
-            reader.onloadend = () => {
+const createRestaurant = async () => {
+    try {
+        const addedRestaurant = await addRestaurant({ ...restaurant.value, types: restaurant.value.types, creator: user_info.value.user_id })
+        restaurantId.value = addedRestaurant._id
+        origin_status.value = { ...restaurant.value }
+    } catch (error) {
+        console.error(error)
+        alert("新增餐廳時出錯，請稍後再試")
+    }
+}
+const cleanRestaurant = () => {
+    restaurant.value = {
+        name: '',
+        phone: '',
+        address: '',
+        types: [''],
+        image: ''
+    }
+}
+
+// 新增類型
+const addType = () => {
+    restaurant.value.types.push('')
+}
+// 移除類型
+const removeType = (index) => {
+    if (restaurant.value.types.length > 1) {
+        restaurant.value.types.splice(index, 1)
+    }
+}
+// 選擇菜單圖片
+const handleFileChange = async (event) => {
+    const file = event.target.files[0]
+    if (file) {
+        const reader = new FileReader()
+        reader.onloadend = () => {
             restaurant.value.image = reader.result
-            }
-            reader.readAsDataURL(file)
         }
+        reader.readAsDataURL(file)
     }
+}
+const saveRestaurant = async () => {
+    const updates = { ...restaurant.value }
+    await updateRestaurant(restaurantId.value, updates)
+    origin_status.value = { ...restaurant.value }
+}
 
-    // 下一道菜
-    const nextMenuItem = () => {
-        const currentItem = menuItems.value[currentMenuItemIndex.value]
-        
-        // 判斷當前菜色是否填寫完整
-        if (currentItem.name.trim() === '' || currentItem.category.trim() === '') {
-            alert('請填寫完整的餐點名稱和分類後再繼續')
-            return
-        }
 
-        // 如果目前索引小於已有菜單的數量，則移至下一個菜餚
-        if (currentMenuItemIndex.value < menuItems.value.length - 1) {
-            currentMenuItemIndex.value++
-        } else {
-            // 否則新增一個新的菜品，並移動到該菜餚
-            menuItems.value.push({ name: '', price: 0, category: '', cate_description: '' })
-            currentMenuItemIndex.value++
-        }
-    }
-
-    // 上一道菜
-    const prevMenuItem = () => {
-        if (currentMenuItemIndex.value > 0) {
-            currentMenuItemIndex.value--
-        }
-    }
-
-    const addbyimage = async (event) => {
-        const file = event.target.files[0]
-        if (file) {
-            const reader = new FileReader()
-            reader.onloadend = async () => {
-                const base64Image = reader.result
-                const filename = file.name
-                const result = await getMenuByImage(filename, base64Image)
-            }
-            reader.readAsDataURL(file)
-        } 
-    }
 </script>
 
 <template>
-  <div class="form-container">
-    <h1 v-if="isAddingRestaurant">新增餐廳</h1>
-    <h1 v-else>新增菜單</h1>
-    <form @submit.prevent="handleSubmit" class="restaurant-form" v-if="isAddingRestaurant">
-      <div class="form-group">
-        <label for="name">餐廳名稱：</label>
-        <input type="text" v-model="restaurant.name" id="name" class="form-input" required autocomplete="off"/>
-      </div>
+    <div class="restaurant-create-container">
+        <!-- 餐廳資訊 -->
+        <div class="info-area">
+            <div class="restaurantImg">
+                <label for="uploadImage" title="上傳照片">
+                    <img v-if="restaurant.image" :src="restaurant.image">
+                    <img v-else src="~assets/images/upload.png">
+                </label>
+                <input type="file" id="uploadImage" @change="handleFileChange" accept="image/png, image/jpeg" hidden />
+            </div>
+            <div class="input-field-container">
+                <InputField :name="'店家名稱'" :id="'restaurantName'" v-model="restaurant.name" />
+                <InputField :name="'店家地址'" :id="'restaurantAddress'" v-model="restaurant.address" />
+                <InputField :name="'店家電話'" :id="'restaurantTel'" v-model="restaurant.phone" />
+                <span v-for="(type, index) in restaurant.types">
+                    <InputField :name="'類型' + index" :id="'tpyes' + index" v-model="restaurant.types[index]" />
+                    <button class="delete-button" @click="removeType(index)">
+                        <img src="~/assets/images/delete.png" alt="">
+                    </button>
+                </span>
+            </div>
 
-      <div class="form-group">
-        <label for="phone">電話：</label>
-        <input type="text" v-model="restaurant.phone" id="phone" class="form-input" required autocomplete="off"/>
-      </div>
-
-      <div class="form-group">
-        <label for="address">地址：</label>
-        <input type="text" v-model="restaurant.address" id="address" class="form-input" required autocomplete="off"/>
-      </div>
-
-      <div class="form-group">
-        <label>類型：</label>
-        <div v-for="(type, index) in restaurant.types" :key="index" class="type-group">
-          <input type="text" v-model="restaurant.types[index]" placeholder="輸入類型" class="type-input" required autocomplete="off"/>
-          <button type="button" @click="addType" class="btn-add">新增</button>
-          <button type="button" @click="removeType(index)" class="btn-remove">移除</button>
+            <nav id="toolbar">
+                <button class="confirm" @click="addType">新增類型</button>
+            </nav>
         </div>
-      </div>
+        <!-- 菜單資訊 -->
+        <MenuArea v-if="restaurantId" :restaurant_id="restaurantId" ref="menuArea" />
 
-      <div class="form-group">
-        <label for="image">菜單圖片：</label>
-        <input type="file" id="image" @change="handleFileChange" class="file-input" autocomplete="off"/>
-        <div v-if="restaurant.image" class="image-preview">
-          <img :src="restaurant.image" alt="Selected Image" class="preview-image" />
-        </div>
-      </div>
-
-      <button type="submit" class="submit-btn">提交</button>
-    </form>
-    
-    <form @submit.prevent="handleSubmit" class="menu-form" v-else>
-    <div v-if="menuItems.length">
-        <div class="form-group">
-        <label for="addByImage">以菜單新增：</label>
-        <input type="file" @change="addbyimage" id="addByImage" autocomplete="off"/>
-        </div>
-        <div class="menu-item-group">
-        <div class="form-group">
-            <label for="name">餐點：</label>
-            <input type="text" v-model="menuItems[currentMenuItemIndex].name" id="name" class="form-input" required autocomplete="off"/>
-        </div>
-
-        <div class="form-group">
-            <label for="price">價格：</label>
-            <input type="float" v-model="menuItems[currentMenuItemIndex].price" id="price" class="form-input" required autocomplete="off"/>
-        </div>
-
-        <div class="form-group">
-            <label for="category">分類：</label>
-            <input type="text" v-model="menuItems[currentMenuItemIndex].category" id="category" class="form-input" required autocomplete="off"/>
-        </div>
-
-        <div class="form-group">
-            <label for="cate_description">分類描述：</label>
-            <input type="text" v-model="menuItems[currentMenuItemIndex].cate_description" id="cate_description" class="form-input" autocomplete="off"/>
-        </div>
-        </div>
-
-        <button type="button" @click="prevMenuItem" class="btn-prev" :disabled="currentMenuItemIndex === 0">上一道菜</button>&nbsp;
-        <button type="button" @click="nextMenuItem" class="btn-next">下一道菜</button>
+        <!-- 工具列 -->
+        <nav id="toolbar">
+            <button class="warning" @click="cleanRestaurant">
+                清　　空
+            </button>
+            <button v-if="restaurantId" :class="{ confirm: isChanged }" @click="saveRestaurant" :disabled="!isChanged">
+                儲存餐廳
+            </button>
+            <button v-else class="confirm" @click="createRestaurant">
+                建立餐廳
+            </button>
+            <button v-if="restaurantId" class="confirm" @click="triggerSaveMenu">
+                儲存菜單
+            </button>
+        </nav>
     </div>
-    <br>
-    <button type="submit" class="submit-btn">提交菜單</button>
-    </form>
-
-  </div>
 </template>
 
 
-<style scoped>
-    .form-container {
-        max-width: 800px;
-        margin: auto;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        background-color: #fff;
-    }
+<style>
+.restaurant-create-container {
+    padding: 1rem;
+    margin: auto;
+    width: 90%;
+    max-width: 1300px;
+    height: 90%;
+    overflow-y: auto;
+    background: #fefefe;
+    border-radius: 12px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
 
-    h1 {
-        text-align: center;
-        margin-bottom: 20px;
-    }
+    position: relative;
+    --toolbar-height: 30px;
+    --image-height: 200px;
 
-    .restaurant-form {
-        display: flex;
-        flex-direction: column;
-    }
+    display: grid;
+    grid-template-columns: 30% 70%;
+}
 
-    .form-group {
-        margin-bottom: 15px;
-    }
+.restaurant-create-container .info-area {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 2rem;
+    position: relative;
+    height: 90%;
+}
 
-    .form-input, .type-input, .file-input {
-        width: 100%;
-        padding: 10px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-    }
+.restaurant-create-container .info-area .input-field-container {
+    display: flex;
+    flex-direction: column;
+    padding-top: 1rem;
+    gap: 1rem;
+    width: 100%;
+    height: 50%;
+    max-height: 50%;
+    overflow-y: auto;
+    box-sizing: border-box;
+    position: relative;
+}
 
-    .type-group {
-        display: flex;
-        align-items: center;
-        margin-bottom: 10px;
-    }
 
-    .btn-add, .btn-remove {
-        margin-left: 10px;
-        padding: 5px 10px;
-        border: none;
-        border-radius: 4px;
-        color: #fff;
-        cursor: pointer;
-    }
+label[for='uploadImage'] {
+    cursor: pointer;
+}
 
-    .btn-add {
-        background-color: #28a745;
-    }
+.restaurant-create-container .info-area .restaurantImg {
+    height: var(--image-height);
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 
-    .btn-remove {
-        background-color: #dc3545;
-    }
+.restaurant-create-container .info-area .restaurantImg img {
+    max-width: 100%;
+    max-height: var(--image-height);
+}
 
-    .file-input {
-        margin-top: 10px;
-    }
+.restaurant-create-container #toolbar {
+    position: absolute;
+    height: var(--toolbar-height);
+    bottom: 0.5rem;
+    left: 0;
+    width: 100%;
 
-    .image-preview {
-        margin-top: 10px;
-    }
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
 
-    .preview-image {
-        max-width: 300px;
-        max-height: 300px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-    }
+.restaurant-create-container #toolbar button {
+    padding-inline: 0.5rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1.5rem;
+}
 
-    .submit-btn {
-        padding: 10px 20px;
-        border: none;
-        border-radius: 4px;
-        color: #fff;
-        background-color: #007bff;
-        cursor: pointer;
-        font-size: 16px;
-    }
+button.confirm {
+    color: #fff;
+    background-color: #007bff;
+}
 
-    .btn-prev, .btn-next {
-        margin-top: 10px;
-        padding: 5px 10px;
-        border: none;
-        border-radius: 4px;
-        color: #fff;
-        cursor: pointer;
-    }
+button.warning {
+    color: #fff;
+    background-color: #bd2c24;
+}
 
-    .btn-prev {
-        background-color: #007bff;
-    }
+.input-field-container>span {
+    display: flex;
+    width: 100%;
+    gap: 0.25rem;
+}
 
-    .btn-next {
-        background-color: #28a745;
-    }
+.delete-button {
+    min-width: 2.5rem;
+    height: 2.5rem;
+    background: #fefefe;
+}
+
+.delete-button img {
+    height: 2.5rem;
+}
 </style>

@@ -7,6 +7,7 @@ const RestaurantSchema = new mongoose.Schema({
   types : {type: Array , required: true },
   image : String,
   createdAt: { type: Date, default: Date.now },
+  creator:{type: String, required: true },
 });
 
 export default mongoose.model('Restaurants', RestaurantSchema);
