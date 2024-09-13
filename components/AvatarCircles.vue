@@ -11,7 +11,6 @@ const props = defineProps({
 
 const member_showing = props.members.slice(0, props.showNum)
 const not_showingNum = props.members.length - props.showNum
-
 </script>
 
 <template>

@@ -21,16 +21,19 @@ onMounted(async () => {
     const joinedGroups = user_info.value.joinedGroups
     for (const group of joinedGroups) {
         const groupData = await getGroupData(`_id=${group}`)
-        groupDataList.value.push( groupData.data[0] )
+        groupDataList.value.push( groupData.data )
     }
-
     for (const group of groupDataList.value) {
-        group.historicalOrderIds.filter(async (order_id) => {
-            const info = await getOrders(`_id=${order_id}`);
-            order_history.value.push(info.data[0])
-        })
+      group.historicalOrderIds.forEach(async (order_id) => {
+        const info = await getOrders(`_id=${order_id}`);
+        const [order] = info.data;
+        if (order) {
+          order_history.value.push(order);
+        }
+      });
     }
 })
+
 </script>
 
 <template>
@@ -45,12 +48,12 @@ onMounted(async () => {
             <div class="item-header">
               <p class="item-name">訂購人 : {{ item.name }}</p>
               <p class="item-total-amount">總金額 : {{ item.totalAmount }}</p>
-              <p class="item-order-time">訂購時間 : {{ item.orderTime }}</p>
+              <p class="item-order-time">訂購時間 : {{ new Date(item.orderTime).toLocaleString() }}</p>
             </div>
-            <div v-for="food in item.orderedItems" :key="food.itemName" class="food-details">
+            <div v-for="food in item.orderedItems" :key="food.name" class="food-details">
               <p>訂購細項 :</p>
-              <p class="food-name">餐點名稱 : {{ food.itemName }}</p>
-              <p class="food-quantity">數量 : {{ food.quantity }}</p>
+              <p class="food-name">餐點名稱 : {{ food.name }}</p>
+              <p class="food-amount">數量 : {{ food.amount }}</p>
             </div>
           </div>
         </div>
@@ -146,7 +149,7 @@ onMounted(async () => {
     color: #2d3436;
   }
   
-  .food-quantity {
+  .food-amount {
     color: #00b894;
   }
   

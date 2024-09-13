@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { getUserData, updateUser } from '@/utils/users/userHandler'
 import { verify_credential } from '@/utils/auth/verifyHandler'
-import { spec_time_output_format } from '@/utils/date/timeHandler'
+import { date_output_format } from '@/utils/date/timeHandler'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -112,41 +112,41 @@ async function updateUserInfo() {
 </script>
 
 <template>
-	<div class="profile-container">
-		<h1 class="title">個人資料頁面</h1>
-		<div v-if="user_info" class="profile-card">
-			<div class="image-container">
-				<img :src="image_b64" alt="User Image" class="profile-image" />
-				<div class="overlay">
-					<label class="change-image-text">
-						更改圖片
-						<input type="file" @change="handleImageUpload" accept="image/*" />
-					</label>
-				</div>
-			</div>
-			<div class="profile-info">
-				<div class="profile-field">
-					<h3 class="key">姓名：</h3>
-					<div class="value">{{ user_info.name }}</div>
-				</div>
-				<div class="profile-field">
-					<h3 class="key">電子郵件：</h3>
-					<div class="value">{{ user_info.email }}</div>
-				</div>
-				<div class="profile-field">
-					<h3 class="key">加入時間：</h3>
-					<div class="value">{{ spec_time_output_format(user_info.createdAt) }}</div>
-				</div>
-				<div class="profile-field">
-					<h3 class="key">暱稱：</h3>
-					<input class="value nickName-input" v-model="nickName" maxlength="15"></input>
-				</div>
-			</div>
-			<div class="save-button-container" v-if="isChanged">
-				<button class="save_button" @click="updateUserInfo">儲存狀態</button>
-			</div>
-		</div>
-	</div>
+  <div class="profile-container">
+    <h1 class="title">個人資料頁面</h1>
+    <div v-if="user_info" class="profile-card">
+      <div class="image-container">
+        <img :src="image_b64" alt="User Image" class="profile-image" />
+        <div class="overlay">
+          <label class="change-image-text">
+            更改圖片
+            <input type="file" @change="handleImageUpload" accept="image/*" />
+          </label>
+        </div>
+      </div>
+      <div class="profile-info">
+        <div class="profile-field">
+          <h3 class="key">姓名：</h3>
+          <div class="value">{{ user_info.name }}</div>
+        </div>
+        <div class="profile-field">
+          <h3 class="key">電子郵件：</h3>
+          <div class="value">{{ user_info.email }}</div>
+        </div>
+        <div class="profile-field">
+          <h3 class="key">加入時間：</h3>
+          <div class="value">{{ date_output_format(user_info.createdAt) }}</div>
+        </div>
+        <div class="profile-field">
+          <h3 class="key">暱稱：</h3>
+          <input class="value nickName-input" v-model="nickName" maxlength="15"></input>
+        </div>
+      </div>
+      <div class="save-button-container" v-if="isChanged">
+        <button class="save_button" @click="updateUserInfo">儲存狀態</button>
+      </div>
+    </div>
+  </div>
 </template>
 
 
