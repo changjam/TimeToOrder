@@ -2,7 +2,7 @@
 	<div class="index-wrapper" v-if="user_info">
 		<div class="user-info-wrapper">
 			<img id="user-avatar" :src="user_info.customImage || user_info.image"  alt="user-image">				
-			<h1> 歡迎 <span class="name">{{ user_info.nickName || user_info.name }}</span> 上餐廳，親愛精誠</h1>
+			<h1>  <span class="name">{{ user_info.nickName || user_info.name }}</span> 你餓了嗎?</h1>
 		</div>
 
 		<nav class="features">

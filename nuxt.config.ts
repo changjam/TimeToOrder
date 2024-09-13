@@ -1,6 +1,13 @@
 import { config } from 'dotenv'
 
 export default defineNuxtConfig({
+  app:{
+    head:{
+      link:[
+        { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' },
+      ]
+    }
+  },
   ssr: false,
   modules: [],
   devtools: { enabled: false },
