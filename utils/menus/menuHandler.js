@@ -4,10 +4,32 @@ export async function addMenu(data) {
   const { data: responseData, error } = await useFetch("/api/menus/post", {
     method: "POST",
     body: data,
-  });  
+  });
 
   if (error.value) {
     throw new Error("Failed to add menu");
+  }
+
+  if (responseData.value.success) {
+    return responseData.value.data;
+  } else {
+    throw new Error(responseData.value.message);
+  }
+}
+
+export async function updateMenu(menuId, updateFields) {
+  const { data: responseData, error } = await useFetch(
+    `/api/menus/${menuId}/put`,
+    {
+      method: "PUT",
+      body: {
+        ...updateFields,
+      },
+    }
+  );
+
+  if (error.value) {
+    throw new Error(`Failed to update menu ${menuId}`);
   }
 
   if (responseData.value.success) {
@@ -58,5 +80,16 @@ export async function deleteMenus(data) {
     return response;
   } catch (error) {
     throw new Error("Failed to get MenuData");
+  }
+}
+
+export async function deleteMenu(menuId) {
+  try {
+    const response = await $fetch(`/api/menus/${menuId}/delete`, {
+      method: "GET",
+    });
+    return response;
+  } catch (error) {
+    throw new Error("Failed to delete MenuData");
   }
 }

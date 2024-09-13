@@ -1,118 +1,76 @@
 <script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { getMenus } from '@/utils/menus/menuHandler';
+import { getRestaurant, updateRestaurant } from '@/utils/restaurants/restaurantHandler';
+import { useRoute, useRouter } from '#app';
 import { getUserData } from '@/utils/users/userHandler'
-import { addRestaurant, updateRestaurant } from '@/utils/restaurants/restaurantHandler'
 import { verify_credential } from '@/utils/auth/verifyHandler'
-import InputField from '~/components/InputField.vue'
-import MenuArea from '~/components/MenuArea.vue'
+import noImage from '@/assets/images/noImage.png';
 
-const restaurant = ref({
-    name: '',
-    phone: '',
-    address: '',
-    types: [''],
-    image: '',
-})
-const restaurantId = ref()
+const global = {
+    typeIndex: 0,
+}
 
+const route = useRoute();
+const router = useRouter();
+
+const restaurant_id = route.params.id
+
+const menu = ref(null);
+const restaurant = ref({ name: '', phone: '', address: '', types: [''], image: '', })
+const user_info = ref('')
+const origin_restaurant = ref({ name: '', phone: '', address: '', types: [''], image: '', })
+onMounted(async () => {
+    const data = await verify_credential()
+    if (!data)
+        router.push('/login');
+    user_info.value = await getUserData(`user_id=${data.user_id}`)
+    user_info.value = user_info.value.data
+    // restaurant
+    restaurant.value = await getRestaurant(restaurant_id)
+    restaurant.value = restaurant.value.data
+    origin_restaurant.value = {...restaurant.value}
+    // menu
+    menu.value = await getMenus(`restaurant=${restaurant_id}`);
+    menu.value = menu.value.data
+});
+
+const RestaurantisChanged = computed(() => {
+    if (origin_restaurant.value.name !== restaurant.value.name) {                
+        return true;
+    }
+    if (origin_restaurant.value.phone !== restaurant.value.phone) {
+        return true;
+    }
+    if (origin_restaurant.value.address !== restaurant.value.address) {
+        return true;
+    }
+    if (origin_restaurant.value.image !== restaurant.value.image) {
+        return true;
+    }
+    if (origin_restaurant.value.types !== restaurant.value.types) {
+        return true;
+    }
+    return false;
+});
+
+
+const saveRestaurant = async () => {
+    const updates = { ...restaurant.value }
+    await updateRestaurant(restaurant_id, updates)
+    origin_restaurant.value = { ...restaurant.value }
+}
 const menuArea = ref(null)
 const triggerSaveMenu = () => {
     if (menuArea.value) {
         menuArea.value.saveMenu(); // 通过 ref 调用子组件的方法
     }
 }
-// 標準流程
-const user_info = ref(null)
-const router = useRouter();
-onMounted(async () => {
-    const data = await verify_credential()
-    if (!data)
-        router.push('/login');
-
-    user_info.value = await getUserData(`user_id=${data.user_id}`)
-    user_info.value = user_info.value.data
-
-})
-
-// 餐廳更改狀態
-const origin_status = ref({ name: '', phone: '', address: '', types: [''], image: '', })
-const isChanged = computed(() => {
-    if (origin_status.value.name !== restaurant.value.name) {
-        console.log('name')
-        return true;
-    }
-    if (origin_status.value.phone !== restaurant.value.phone) {
-        console.log('phone')
-        return true;
-    }
-    if (origin_status.value.address !== restaurant.value.address) {
-        console.log('address')
-        return true;
-    }
-    if (origin_status.value.image !== restaurant.value.image) {
-        console.log('image')
-        return true;
-    }
-    if (origin_status.value.types !== restaurant.value.types) {
-        console.log('types')
-        return true;
-    }
-    return false;
-});
-
-const createRestaurant = async () => {
-    try {
-        const addedRestaurant = await addRestaurant({ ...restaurant.value, types: restaurant.value.types, creator: user_info.value.user_id })
-        restaurantId.value = addedRestaurant._id
-        origin_status.value = { ...restaurant.value }
-    } catch (error) {
-        console.error(error)
-        alert("新增餐廳時出錯，請稍後再試")
-    }
-}
-const cleanRestaurant = () => {
-    restaurant.value = {
-        name: '',
-        phone: '',
-        address: '',
-        types: [''],
-        image: ''
-    }
-}
-
-// 新增類型
-const addType = () => {
-    restaurant.value.types.push('')
-}
-// 移除類型
-const removeType = (index) => {
-    if (restaurant.value.types.length > 1) {
-        restaurant.value.types.splice(index, 1)
-    }
-}
-// 選擇菜單圖片
-const handleFileChange = async (event) => {
-    const file = event.target.files[0]
-    if (file) {
-        const reader = new FileReader()
-        reader.onloadend = () => {
-            restaurant.value.image = reader.result
-        }
-        reader.readAsDataURL(file)
-    }
-}
-const saveRestaurant = async () => {
-    const updates = { ...restaurant.value }
-    await updateRestaurant(restaurantId.value, updates)
-    origin_status.value = { ...restaurant.value }
-}
 </script>
 
 <template>
     <div class="restaurant-create-container">
         <!-- 餐廳資訊 -->
-        <div class="info-area">
+        <div class="info-area" v-if="restaurant">
             <div class="restaurantImg">
                 <label for="uploadImage" title="上傳照片">
                     <img v-if="restaurant.image" :src="restaurant.image">
@@ -137,23 +95,18 @@ const saveRestaurant = async () => {
             </nav>
         </div>
         <!-- 菜單資訊 -->
-        <MenuArea v-if="restaurantId" :restaurant_id="restaurantId" ref="menuArea" />
+        <MenuArea v-if="restaurant_id && menu" :restaurant_id="restaurant_id" :menus="menu" ref="menuArea" />
 
         <!-- 工具列 -->
         <nav id="toolbar">
-            <button class="warning" @click="cleanRestaurant">
-                清　　空
-            </button>
-            <button v-if="restaurantId" :class="{ confirm: isChanged }" @click="saveRestaurant" :disabled="!isChanged">
+            <button v-if="restaurant_id" :class="{ confirm: RestaurantisChanged }" @click="saveRestaurant"
+                :disabled="!RestaurantisChanged">
                 儲存餐廳
             </button>
-            <button v-else class="confirm" @click="createRestaurant">
-                建立餐廳
-            </button>
-            <button class="confirm" @click="router.push({path:'/restaurants'})">
+            <button class="confirm" @click="router.push({ path: '/restaurants' })">
                 完成
             </button>
-            <button v-if="restaurantId" class="confirm" @click="triggerSaveMenu">
+            <button v-if="restaurant_id" class="confirm" @click="triggerSaveMenu">
                 儲存菜單
             </button>
         </nav>

@@ -18,22 +18,34 @@ export async function addRestaurant(data) {
 }
 
 
-export async function getRestaurant() {
+export async function getAllRestaurant() {
   try{
-    const data = await useFetch('/api/restaurants/get');
+    const data = await useFetch('/api/restaurants/getAll');
     return data.data.value.data;    
   }catch(error){
     console.log(error);
   }
 }
-export async function getCreatorRestaurant(data) {
+
+export async function getRestaurant(restaurantID) {
   try{
-    const response = await $fetch(`/api/restaurants/getUserRestaurant?${data}`, {
+    const response = await $fetch(`/api/restaurants/get?_id=${restaurantID}`, {
       method: 'GET',
   });    
     return response;
   }catch(error){
     console.log(error);
+  }
+}
+
+export async function getCreatorRestaurant(user_id) {
+  try{
+    const response = await $fetch(`/api/restaurants/gets?creator=${user_id}`, {
+      method: 'GET',
+  });    
+    return response;
+  }catch(error){
+    throw new Error(`Failed to get User:${user_id} owned Restaurant`);
   }
 }
 
@@ -47,6 +59,6 @@ export async function updateRestaurant(id, updateFields) {
     });
     return response;
   } catch (error) {
-    throw new Error('Failed to update User');
+    throw new Error('Failed to update Restaurant');
   }
 }

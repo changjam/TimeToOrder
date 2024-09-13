@@ -52,8 +52,7 @@ function handleImageUpload(event) {
 			const maxHeight = 600; // 设定最大高度
 			let width = img.width;
 			let height = img.height;
-
-			// 保持宽高比进行压缩
+			
 			if (width > height) {
 				if (width > maxWidth) {
 					height *= maxWidth / width;
@@ -72,7 +71,7 @@ function handleImageUpload(event) {
 			const ctx = canvas.getContext('2d');
 			ctx.drawImage(img, 0, 0, width, height);
 
-			// 获取压缩后的base64图片
+			
 			const compressedDataUrl = canvas.toDataURL('image/jpeg', 1); // 第二个参数为压缩质量，0.7表示70%
 
 			image_b64.value = compressedDataUrl; // 将压缩后的图片赋值给image_b64

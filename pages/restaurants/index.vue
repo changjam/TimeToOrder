@@ -13,19 +13,15 @@ onMounted(async () => {
 
   user_info.value = await getUserData(`user_id=${data.user_id}`)
   user_info.value = user_info.value.data
-  console.log(user_info.value.user_id)
-  restaurants.value = await getCreatorRestaurant(`creator=${user_info.value.user_id}`)
+
+  restaurants.value = await getCreatorRestaurant(user_info.value.user_id)
   restaurants.value = restaurants.value.data
 })
-
-
-
 
 </script>
 
 <template>
-  <div class="container">
-    <h3>想吃甚麼?</h3>
+  <div class="container">    
     <div id="menus">
       <div class="create-restaurant" @click="router.push({ path: '/restaurants/create' })">
         <h1>建立新菜單</h1>

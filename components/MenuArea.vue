@@ -1,8 +1,17 @@
 <script setup>
 import { getMenuByImage } from '@/utils/ocr/ocrHandler'
-import { getMenus, addMenu } from '@/utils/menus/menuHandler'
+import { updateMenu, addMenu, deleteMenu } from '@/utils/menus/menuHandler'
 // 全域變數
-const props = defineProps(['restaurant_id'])
+const props = defineProps(['restaurant_id', 'menus'])
+
+onMounted(() => {
+    if (props.menus && props.menus.length) {
+        props.menus.forEach(dish => {
+            updateMenuList(dish)
+        });
+    }
+})
+
 const MenuArea = {
     curentItems: 0,
     currentTypes: 0
@@ -23,14 +32,19 @@ const addNewitem = (type_id) => {
         name: "餐點名稱",
         typeId: type_id,
         price: '0',
-        image: ''
+        image: '',
+        isSaved: false,
     })
     MenuArea.curentItems += 1;
 }
-const removeItem = (_item) => {
+const removeItem = async (_item) => {
     const _index = items.value.indexOf(_item);
     if (_index > -1) {
         items.value.splice(_index, 1);
+        if (_item.isSaved) {
+            await deleteMenu(_item.id)
+            alert(`刪除餐點:\n餐點名稱 : ${_item.name}\n 餐點價格 : ${_item.price}`)
+        }
     }
 }
 const addNewType = () => {
@@ -41,7 +55,7 @@ const addNewType = () => {
     })
     MenuArea.currentTypes += 1;
 }
-const removeType = (type) => {
+const removeType = async (type) => {
     //移除type
     const tpye_index = types.value.indexOf(type);
     if (tpye_index > -1) {
@@ -50,12 +64,8 @@ const removeType = (type) => {
     // 移除type的餐點
     const typeItems = items.value.filter(item => item.typeId == type.id)
     typeItems.forEach(_item => {
-        const _index = items.value.indexOf(_item);
-        if (_index > -1) {
-            items.value.splice(_index, 1);
-        }
+        removeItem(_item)
     })
-
 }
 
 // 菜單內容
@@ -67,10 +77,12 @@ const formatMenuItem = () => {
         const formattedItems = items.value.map(item => {
             const _itemType = types.value.find(type => type.id === item.typeId)
             const _menuItem = {
+                id: item.id,
                 name: item.name,
                 price: Number(item.price.replace(/[^\d.]/g, '')),
-                category: item.typeIndex == -1 ? '' : _itemType.name,
-                cate_description: item.typeIndex == -1 ? '' : _itemType.description,
+                category: item.typeId == -1 ? '餐點' : _itemType.name,
+                cate_description: item.typeId == -1 ? '' : _itemType.description,
+                isSaved: item.isSaved,
             }
             return _menuItem;
         })
@@ -88,21 +100,22 @@ const addbyimage = async (event) => {
             const base64Image = reader.result
             const filename = file.name
             const result = await getMenuByImage(filename, base64Image)
-            console.log(result)
+
             const importMemuList = result.result.result
             importMemuList.map(dish => {
                 dish.id = MenuArea.curentItems
-                dish.typeIndex = -1
+                dish.typeId = -1
                 MenuArea.curentItems += 1
                 return dish
             })
             items.value.push(...importMemuList)
+            saveMenu();
         }
         reader.readAsDataURL(file)
     }
 }
 
-const updateMenu = (_dish) => {
+const updateMenuList = (_dish) => {
     let _index = types.value.findIndex(type => type.name === _dish.category)
 
     if (_index < 0) {
@@ -120,8 +133,9 @@ const updateMenu = (_dish) => {
         name: _dish.name,
         price: `${_dish.price}`,
         typeId: item_type.id,
+        image: _dish.image,
+        isSaved: true
     })
-    console.log(items.value)
 }
 // 儲存菜單
 const saveMenu = async () => {
@@ -130,15 +144,64 @@ const saveMenu = async () => {
         if (menuItem.name.trim() !== '') { // 確保菜單名稱不為空
             const menuData = {
                 restaurant: props.restaurant_id,
-                ...menuItem
+                name: menuItem.name,
+                price: menuItem.price,
+                category: menuItem.category,
+                cate_description: menuItem.cate_description
             };
-            const addedMenu = await addMenu(menuData);
-            console.log(addedMenu)
-            updateMenu(addedMenu)
+            if (menuItem.isSaved) {
+                const updatedMenu = await updateMenu(menuItem.id, menuData)
+                updateMenuList(updatedMenu)
+            } else {
+                const addedMenu = await addMenu(menuData);
+                updateMenuList(addedMenu)
+            }
         }
     }
 }
-defineExpose({saveMenu});
+defineExpose({ saveMenu });
+
+function handleImageUpload(event, item) {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+
+    reader.onload = async () => {
+        const img = new Image();
+        img.src = reader.result;
+
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const maxWidth = 800;
+            const maxHeight = 600;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height) {
+                if (width > maxWidth) {
+                    height *= maxWidth / width;
+                    width = maxWidth;
+                }
+            } else {
+                if (height > maxHeight) {
+                    width *= maxHeight / height;
+                    height = maxHeight;
+                }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+
+            const compressedDataUrl = canvas.toDataURL('image/jpeg', 1);
+
+            item.image = compressedDataUrl;
+        };
+    };
+
+    reader.readAsDataURL(file);
+}
 
 </script>
 
@@ -150,61 +213,68 @@ defineExpose({saveMenu});
             <button class="confirm" @click="addNewType">新增類別</button>
             <label class="confirm" for="addByImage">使用圖片匯入</label>
             <input type="file" @change="addbyimage" id="addByImage" autocomplete="off" hidden />
-            <button class="confirm" @click="saveMenu">儲存菜單</button>
         </nav>
-        <!-- 建立的類別 -->
-        <div class="category-container" v-for="(type) in types">
-            <section class="caption">
-                <input id="category" type="text" name="" v-model="type.name">
-                <input id="description" type="text" name="" v-model="type.description">
-                <button @click="addNewitem(type.id)"><img src="~/assets/images/plus.svg" alt="" srcset=""></button>
-                <button @click="removeType(type)"><img src="~/assets/images/circle-x.svg" alt="" srcset=""></button>
-            </section>
-            <!-- Drop Area -->
-            <div class="category-dishes" @drop="onDrop($event, type)" @dragover.prevent @dragenter.prevent>
-                <!-- Drop Items -->
-                <div id="dish" class="dish" draggable="true" @dragstart="startDrag($event, item)"
-                    v-for="item in items.filter(item => item.typeId == type.id)">
-                    <span class="grab"> <img src="~/assets/images/dots-vertical-rounded.svg" alt=""></span>
-                    <span class="name"><input type="text" v-model="item.name"></span>
-                    <span class="price"><input type="text" v-model="item.price"></span>
-                    <span class="addImage"><img src="~/assets/images/plus.svg" alt="" srcset=""></span>
-                    <span class="functions" draggable="false" @click="removeItem(item)">
-                        <img src="~/assets/images/circle-x.svg" alt="" srcset="" draggable="false">
-                    </span>
-                </div>
+        <main>
+            <!-- 建立的類別 -->
+            <div class="category-container" v-for="(type) in types">
+                <section class="caption">
+                    <input id="category" type="text" name="" v-model="type.name">
+                    <input id="description" type="text" name="" v-model="type.description">
+                    <button @click="addNewitem(type.id)"><img src="~/assets/images/plus.svg" alt="" srcset=""></button>
+                    <button @click="removeType(type)"><img src="~/assets/images/circle-x.svg" alt="" srcset=""></button>
+                </section>
+                <!-- Drop Area -->
+                <div class="category-dishes" @drop="onDrop($event, type)" @dragover.prevent @dragenter.prevent>
+                    <!-- Drop Items -->
+                    <div id="dish" class="dish" draggable="true" @dragstart="startDrag($event, item)"
+                        v-for="item in items.filter(item => item.typeId == type.id)">
+                        <span class="grab"> <img src="~/assets/images/dots-vertical-rounded.svg" alt=""></span>
+                        <span class="name"><input type="text" v-model="item.name"></span>
+                        <span class="price"><input type="text" v-model="item.price"></span>
+                        <label class="addImage" for="uploadDishImage"><img src="~/assets/images/plus.svg" alt=""
+                                srcset=""></label>
+                        <input id="uploadDishImage" type="file" @change="handleImageUpload($event, item)"
+                            accept="image/*" hidden />
+                        <span class="functions" draggable="false" @click="removeItem(item)">
+                            <img src="~/assets/images/circle-x.svg" alt="" srcset="" draggable="false">
+                        </span>
 
-            </div>
-        </div>
-        <!-- 其他類別 -->
-        <div class="category-container">
-            <section class="caption">
-                <h2 style="text-align: center;width: 100%;">無類別</h2>
-                <button @click="addNewitem(-1)"><img src="~/assets/images/plus.svg" alt="" srcset=""></button>
-            </section>
-            <!-- Drop Area -->
-            <div class="category-dishes" @drop="onDrop($event, { id: -1 })" @dragover.prevent @dragenter.prevent>
-                <!-- Drop Items -->
-                <div id="dish" class="dish" draggable="true" @dragstart="startDrag($event, item)"
-                    v-for="item in items.filter(item => item.typeId == -1)">
-                    <span class="grab" draggable="false">
-                        <img src="~/assets/images/dots-vertical-rounded.svg" alt="" draggable="false">
-                    </span>
-                    <span class="name" draggable="false">
-                        <input type="text" v-model="item.name" draggable="false">
-                    </span>
-                    <span class="price" draggable="false">
-                        <input type="text" v-model="item.price" draggable="false">
-                    </span>
-                    <span class="addImage" draggable="false">
-                        <img src="~/assets/images/plus.svg" alt="" srcset="" draggable="false">
-                    </span>
-                    <span class="functions" draggable="false" @click="removeItem(item)">
-                        <img src="~/assets/images/circle-x.svg" alt="" srcset="" draggable="false">
-                    </span>
+                    </div>
+
                 </div>
             </div>
-        </div>
+            <!-- 其他類別 -->
+            <div class="category-container">
+                <section class="caption">
+                    <h2 style="text-align: center;width: 100%;">無類別</h2>
+                    <button @click="addNewitem(-1)"><img src="~/assets/images/plus.svg" alt="" srcset=""></button>
+                </section>
+                <!-- Drop Area -->
+                <div class="category-dishes" @drop="onDrop($event, { id: -1 })" @dragover.prevent @dragenter.prevent>
+                    <!-- Drop Items -->
+                    <div id="dish" class="dish" draggable="true" @dragstart="startDrag($event, item)"
+                        v-for="item in items.filter(item => item.typeId == -1)">
+                        <span class="grab" draggable="false">
+                            <img src="~/assets/images/dots-vertical-rounded.svg" alt="" draggable="false">
+                        </span>
+                        <span class="name" draggable="false">
+                            <input type="text" v-model="item.name" draggable="false">
+                        </span>
+                        <span class="price" draggable="false">
+                            <input type="text" v-model="item.price" draggable="false">
+                        </span>
+                        <label class="addImage" draggable="false" for="uploadDishImage">
+                            <img src="~/assets/images/plus.svg" alt="" srcset="" draggable="false">
+                        </label>
+                        <input id="uploadDishImage" type="file" @change="handleImageUpload($event, item)"
+                            accept="image/*" hidden />
+                        <span class="functions" draggable="false" @click="removeItem(item)">
+                            <img src="~/assets/images/circle-x.svg" alt="" srcset="" draggable="false">
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </main>
     </div>
 </template>
 
@@ -217,6 +287,7 @@ defineExpose({saveMenu});
     padding-inline: 1rem;
     position: relative;
     height: 90%;
+    overflow: hidden;
 }
 
 .restaurant-create-container .menu-area .menu-function {
@@ -231,6 +302,11 @@ defineExpose({saveMenu});
     border: none;
     border-radius: 4px;
     font-size: 1.5rem;
+}
+
+.restaurant-create-container .menu-area>main {
+    max-height: 90%;
+    overflow-y: auto;
 }
 
 .category-container {
@@ -261,6 +337,7 @@ defineExpose({saveMenu});
     padding-inline: 0.5rem;
 }
 
+.category-container>.caption>label.confrim,
 .category-container>.caption>button {
     flex-basis: 2rem;
     cursor: pointer;
