@@ -5,7 +5,7 @@ import { useRoute, useRouter } from '#app';
 import { getUserData } from '@/utils/users/userHandler';
 import { verify_credential } from '@/utils/auth/verifyHandler';
 import { getOrders } from '@/utils/order/orderHandler';
-import { updateOrder, deleteSingleOrder, check_status } from '@/utils/order/orderHandler';
+import { updateOrder, deleteSingleOrder, check_status, get_status, updateStatus } from '@/utils/order/orderHandler';
 import { getFormattedUTCTime, full_time_format } from '@/utils/date/timeHandler';
 
 const route = useRoute();
@@ -130,6 +130,17 @@ const clear_order = async () => {
     console.error(error)
   }
 }
+
+const change_status = async (self_status, target_status) => {
+  if (self_status == target_status)
+    return;
+
+  const userConfirmed = confirm('改變狀態為 "' + get_status(target_status) + '"');
+  if (!userConfirmed)
+    return;
+  await updateStatus({orderId: order_id.value , Status: target_status});
+  location.reload();
+}
 </script>
 
 
@@ -153,11 +164,12 @@ const clear_order = async () => {
       </div>
     </div>
     <div class="order-status-container">
-      <span class="status" :class="{'active': order_info.status === 'Available'}">Available</span>
-      <span class="status" :class="{'active': order_info.status === 'Locked'}">Locked</span>
-      <span class="status" :class="{'active': order_info.status === 'In_Progress'}">In Progress</span>
-      <span class="status" :class="{'active': order_info.status === 'Finished'}">Finished</span>
-      <span class="status" :class="{'active': order_info.status === 'Canceled'}">Canceled</span>
+      <span class="status" @click="change_status(order_info.status, 'Locked')" :class="{'active': order_info.status === 'Locked'}">{{ get_status('Locked') }}</span>
+      <span class="status" @click="change_status(order_info.status, 'Available')" :class="{'active': order_info.status === 'Available'}">{{ get_status('Available') }}</span>
+      <span class="status" @click="change_status(order_info.status, 'Confirmed')" :class="{'active': order_info.status === 'Confirmed'}">{{ get_status('Confirmed') }}</span>
+      <span class="status" @click="change_status(order_info.status, 'In_Progress')" :class="{'active': order_info.status === 'In_Progress'}">{{ get_status('In_Progress') }}</span>
+      <span class="status" @click="change_status(order_info.status, 'Finished')" :class="{'active': order_info.status === 'Finished'}">{{ get_status('Finished') }}</span>
+      <span class="status" @click="change_status(order_info.status, 'Canceled')" :class="{'active': order_info.status === 'Canceled'}">{{ get_status('Canceled') }}</span>
     </div>
   </div>
 
