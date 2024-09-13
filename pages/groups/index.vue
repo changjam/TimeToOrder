@@ -164,7 +164,7 @@ onMounted(async () => {
 }
 
 .prev-button, .next-button {
-  width: 48%;
+  width: 30%;
   background-color: #007bff;
 }
 
