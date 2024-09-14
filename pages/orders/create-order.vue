@@ -1,11 +1,11 @@
 <script setup>
-import { getRestaurant } from '@/utils/restaurants/restaurantHandler';
+import { getCreatorRestaurant } from '@/utils/restaurants/restaurantHandler';
 import { getUserData } from '@/utils/users/userHandler'
 import { verify_credential } from '@/utils/auth/verifyHandler'
-import { getGroupByUserID } from '@/utils/Common'
 import { addOrder } from '@/utils/order/orderHandler'
 import { getGroupData } from '@/utils/groups/groupHandler'
 import { getFormattedUTCTime, toLocalISOString, oneHourLater } from '@/utils/date/timeHandler'
+import noImage from '@/assets/images/noImage.png';
 
 const today = getFormattedUTCTime()
 const restaurant_select = ref({ id: 0 })
@@ -58,7 +58,9 @@ onMounted(async () => {
         groupDataList.value.push({ ...groupData.data, creator_name: creator_name })
     }
 
-    restaurants.value = await getRestaurant();
+    restaurants.value = await getCreatorRestaurant(user_info.value.user_id);
+    restaurants.value = restaurants.value.data
+    console.log(restaurants.value)
 })
 
 const CreateOrder = async () => {
@@ -128,7 +130,7 @@ const CreateOrder = async () => {
                     @dblclick="goNext"
                     :class="{ selected: restaurant_select._id === restaurant._id }"
                 >
-                    <img :src="restaurant.image" alt="Restaurant Image" class="restaurant-image" />
+                    <img :src="restaurant.image||noImage" alt="Restaurant Image" class="restaurant-image" />
                     <div class="restaurant-info">
                         <h2>{{ restaurant.name }}</h2>
                         <p><strong>電話:</strong> {{ restaurant.phone }}</p>

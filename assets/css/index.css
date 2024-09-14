@@ -30,6 +30,10 @@ button {
   border: 0;
 }
 
+button:hover{
+  cursor: pointer;
+}
+
 @media (min-width: 1200px) {
   :root {
     --font-size1: 16px;
@@ -90,12 +94,10 @@ body {
 
 *::-webkit-scrollbar-thumb {
   border-radius: 10px;
-  -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, .3);
   background-color: #555;
 }
 
 *::-webkit-scrollbar-thumb:hover {
   border-radius: 10px;
-  -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, .3);
-  background-color: var(--dark-blue);
+  background-color: var(--gold);
 }
