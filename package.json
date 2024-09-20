@@ -1,5 +1,6 @@
 {
   "name": "nuxt-app",
+  "version": "0.0.5",
   "private": true,
   "type": "module",
   "scripts": {
@@ -10,12 +11,21 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "cookie-universal-nuxt": "^2.2.2",
     "dotenv": "^16.4.5",
+    "jsonwebtoken": "^9.0.2",
     "nuxt": "^3.12.4",
-    "vue": "latest"
+    "nuxt-storage": "^1.2.2",
+    "nuxt-vuefire": "^1.0.3",
+    "vue": "latest",
+    "vuefire": "^3.1.24"
   },
   "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.6",
     "google-auth-library": "^9.13.0",
+    "mongoose": "^8.5.3",
+    "prisma": "^5.18.0",
+    "vite-plugin-node-polyfills": "^0.22.0",
     "vue3-google-login": "^2.0.31"
   }
 }
