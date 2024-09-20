@@ -62,10 +62,7 @@ onMounted(async () => {
 
 <template>
 <div class="group-container-wrapper">
-  <div v-if="loading">
-    <h1>Loading...</h1>
-  </div>
-  <div class="group-container" v-else>
+  <div class="group-container">
     <div class="group-list">
       <h2 class="tab-title">群組列表</h2>
       <div 
